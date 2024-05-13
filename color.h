@@ -1,7 +1,6 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include <fstream>
 #include "vec3.h"
 
 using color = vec3;

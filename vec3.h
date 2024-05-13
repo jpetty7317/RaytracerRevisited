@@ -1,8 +1,7 @@
 #ifndef VEC3
 #define VEC3
 
-#include <iostream>
-#include <math.h>
+#include "utilities.h"
 
 class vec3 {
     private:
@@ -10,6 +9,7 @@ class vec3 {
 
     public:
         vec3(){}
+        vec3(const vec3& v) : e{v.x(), v.y(), v.z()}{};
         vec3(float x, float y, float z): e {x, y ,z}{};
 
         // For vector semnatics 
