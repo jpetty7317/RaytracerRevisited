@@ -1,5 +1,5 @@
-#ifndef VEC3
-#define VEC3
+#ifndef VEC3_H
+#define VEC3_H
 
 #include "utilities.h"
 
@@ -66,17 +66,30 @@ class vec3 {
             return *this;
         }
 
-        float squaredLength() const {
+        float squaredLength() const 
+        {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
 
-        float length() const {
+        float length() const 
+        {
             return sqrt(squaredLength());
         }
 
         vec3& normalize()
         {
             return *this /= length();
+        }
+
+        static vec3 random() 
+        {
+            return vec3(randGen<float>(), randGen<float>(), randGen<float>());
+        }
+
+        template <typename T, typename U>
+        static vec3 random(T min, U max) 
+        {
+            return vec3(randGen<float>(min, max), randGen<float>(min, max), randGen<float>(min, max));
         }
 
         static vec3 up() {return vec3 {0.0, 1.0, 0.0};} 
@@ -135,6 +148,28 @@ inline vec3 cross(const vec3& v1, const vec3& v2)
     return vec3 {   v1[1] * v2[2] - v1[2] * v2[1],
                     v1[2] * v2[0] - v1[0] * v2[2],
                     v1[0] * v2[1] - v1[1] * v2[0]   };
+}
+
+inline vec3 randomInUnitSphere()
+{
+    while(true)
+    {
+        vec3 v = vec3::random(-1, 1);
+        if(v.squaredLength() < 1)
+            return v;
+    }
+}
+
+inline vec3 randomUnitVector()
+{
+    return randomInUnitSphere().normalize();
+}
+
+inline vec3 randomVectorOnHemisphere(const vec3& normal)
+{
+    vec3 onUnitSphere = randomUnitVector();
+
+    return dot(onUnitSphere, normal) > 0.0 ? onUnitSphere : -onUnitSphere;
 }
 
 #endif
