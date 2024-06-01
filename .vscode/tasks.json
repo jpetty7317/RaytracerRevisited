@@ -10,7 +10,8 @@
                 "-std=c++17",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-lassimp"
             ],
             "options": {
                 "cwd": "${fileDirname}"
