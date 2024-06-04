@@ -43,7 +43,8 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "chrono": "cpp"
     },
     "C_Cpp.default.includePath": [
         "C:\\msys64\\mingw64\\include"

@@ -2,6 +2,7 @@
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <chrono>
 #include "camera.h"
 #include "hittable.h"
 #include "hittablelist.h"
@@ -81,7 +82,8 @@ int main()
     cam.maxBounceDepth = 10;
 
     std::cout << "STARTING RENDER\n";
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     cam.render(world); 
-
+    std::cout << "TIME TO RENDER: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - now).count() << '\n';
     return 0;
 }
