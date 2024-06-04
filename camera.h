@@ -53,7 +53,7 @@ private:
 
         pixelSamplesInv = 1.0 / samplesPerPixel;
 
-        cameraPos = {0,5,10};
+        cameraPos = {0,2.5,5};
 
         // Calculate analytical viewport based on precise viewport aspect
         const double viewportHeight = 2.0;

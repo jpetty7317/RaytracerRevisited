@@ -7,6 +7,37 @@
 #include "hittablelist.h"
 #include "triangle.h"
 
+void addFaces(hittableList& world, const aiMesh* mesh)
+{
+    for(int i = 0; i < mesh->mNumFaces; i++)
+    {
+        aiFace face = mesh->mFaces[i];
+        aiVector3D v0 = mesh->mVertices[face.mIndices[0]];
+        aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
+        aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
+
+        world.addObject(make_shared<triangle>(
+            point3(v0.x, v0.y, v0.z),
+            point3(v1.x, v1.y, v1.z),
+            point3(v2.x, v2.y, v2.z)
+        ));
+    }
+}
+
+void processWorld(hittableList& world, aiNode* node, const aiScene* scene)
+{
+    for(int i = 0; i < node->mNumMeshes; i++)
+    {
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        addFaces(world, mesh);
+    }
+
+    for(int i = 0; i < node->mNumChildren; i++)
+    {
+        processWorld(world, node->mChildren[i], scene);
+    }
+}
+
 int main()
 {
     Assimp::Importer importer{};
@@ -24,21 +55,23 @@ int main()
 
     // Make our world!
     hittableList world;
+    processWorld(world, scene->mRootNode, scene);
+    // Add a basic large floor
     world.addObject(make_shared<triangle>(point3(-100, 0, 100),
                                             point3(100, 0, -100),
                                             point3(-100, 0, -100)));
     world.addObject(make_shared<triangle>(point3(100, 0, -100),
                                             point3(-100, 0, 100),
                                             point3(100, 0, 100)));
-    world.addObject(make_shared<triangle>(point3(0, 10, -10),
-                                            point3(-10, 0, -10),
-                                            point3(10, 0, -10)));
+    std::cout << "WORLD CREATION COMPLETE\n";
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
     cam.imageWidth = 1920;
     cam.samplesPerPixel = 10;
     cam.maxBounceDepth = 50;
+
+    std::cout << "STARTING RENDER\n";
     cam.render(world); 
 
     return 0;
