@@ -6,9 +6,11 @@
 #include "hittable.h"
 #include "hittablelist.h"
 #include "triangle.h"
+#include "aabb.h"
 
 void addFaces(hittableList& world, const aiMesh* mesh)
 {
+    hittableList hitMesh;
     for(int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -16,12 +18,17 @@ void addFaces(hittableList& world, const aiMesh* mesh)
         aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
         aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
 
-        world.addObject(make_shared<triangle>(
+        hitMesh.addObject(make_shared<triangle>(
             point3(v0.x, v0.y, v0.z),
             point3(v1.x, v1.y, v1.z),
             point3(v2.x, v2.y, v2.z)
         ));
     }
+
+    const aiAABB& bounds = mesh->mAABB;
+    vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
+    vec3 max {bounds.mMax.x, bounds.mMax.y, bounds.mMax.z};
+    world.addObject(make_shared<aabb>(min, max, hitMesh));
 }
 
 void processWorld(hittableList& world, aiNode* node, const aiScene* scene)
@@ -41,7 +48,8 @@ void processWorld(hittableList& world, aiNode* node, const aiScene* scene)
 int main()
 {
     Assimp::Importer importer{};
-    const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
+                                                        | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -63,13 +71,14 @@ int main()
     world.addObject(make_shared<triangle>(point3(100, 0, -100),
                                             point3(-100, 0, 100),
                                             point3(100, 0, 100)));
+    
     std::cout << "WORLD CREATION COMPLETE\n";
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 1920;
+    cam.imageWidth = 400;
     cam.samplesPerPixel = 10;
-    cam.maxBounceDepth = 50;
+    cam.maxBounceDepth = 10;
 
     std::cout << "STARTING RENDER\n";
     cam.render(world); 
