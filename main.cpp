@@ -49,7 +49,7 @@ void processWorld(hittableList& world, aiNode* node, const aiScene* scene)
 int main()
 {
     Assimp::Importer importer{};
-    const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
+    const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -65,21 +65,16 @@ int main()
     // Make our world!
     hittableList world;
     processWorld(world, scene->mRootNode, scene);
-    // Add a basic large floor
-    world.addObject(make_shared<triangle>(point3(-100, 0, 100),
-                                            point3(100, 0, -100),
-                                            point3(-100, 0, -100)));
-    world.addObject(make_shared<triangle>(point3(100, 0, -100),
-                                            point3(-100, 0, 100),
-                                            point3(100, 0, 100)));
-    
-    std::cout << "WORLD CREATION COMPLETE\n";
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 400;
-    cam.samplesPerPixel = 10;
+    cam.imageWidth = 1920;
+    cam.samplesPerPixel = 5;
     cam.maxBounceDepth = 10;
+    cam.vfov = 90;
+    cam.lookFrom = point3{1.0, 5.0, 0.0};
+    cam.lookAt = point3{3.0, 5.0, 0.0};
+    cam.vUp = vec3{0,1,0};
 
     std::cout << "STARTING RENDER\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();

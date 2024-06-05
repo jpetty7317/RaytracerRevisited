@@ -11,6 +11,10 @@ public:
     int imageWidth = 100;        // Rendered image width in pixels
     int samplesPerPixel = 10;    // Count of random samples for each pixel
     int maxBounceDepth = 10;     // Maximum number of bounces per ray
+    double vfov = 90;            // Vertical view angle (field of view)
+    point3 lookFrom = point3{0,0,0};
+    point3 lookAt = point3{0,0,-1};
+    vec3 vUp = vec3{0,1,0};
 
     void render(const hittable& world)
     {
@@ -45,6 +49,11 @@ private:
     point3 pixel00Pos;  // World pos of pixel 0,0
     vec3 pixelDeltaU;   // Offset to center of pixel to the right
     vec3 pixelDeltaV;   // Offset to center of pixel below
+    
+    // Orthonormal basis vectors for orienting the camera arbitrarily
+    vec3 u;
+    vec3 v;
+    vec3 w;
 
     void initialize()
     {
@@ -53,20 +62,27 @@ private:
 
         pixelSamplesInv = 1.0 / samplesPerPixel;
 
-        cameraPos = {0,2.5,5};
+        cameraPos = lookFrom;
 
         // Calculate analytical viewport based on precise viewport aspect
-        const double viewportHeight = 2.0;
+        const float focalLength = (lookFrom - lookAt).length();
+        const double theta = degreesToRadians(vfov);
+        const double h = tan(theta/2.0);
+        const double viewportHeight = 2 * h * focalLength;
         const double viewportWidth = viewportHeight * (double(imageWidth) / imageHeight);
-        const float focalLength = 1.0f;
 
-        vec3 viewPortU {float(viewportWidth), 0.0, 0.0};
-        vec3 viewPortV {0.0, float(-viewportHeight), 0.0};
+        // Calculate the u,v,w unit basis vectors for the camera coordinate frame
+        w = (lookFrom - lookAt).normalize();
+        u = cross(vUp, w).normalize();
+        v = cross(w, u);
+
+        vec3 viewPortU {float(viewportWidth) * u};
+        vec3 viewPortV {float(viewportHeight) * -v};
 
         pixelDeltaU = viewPortU / imageWidth;
         pixelDeltaV = viewPortV / imageHeight;
 
-        point3 viewportUpperLeft = cameraPos - vec3(0,0,focalLength) - (viewPortU / 2.0) - (viewPortV / 2.0);
+        point3 viewportUpperLeft = cameraPos - (focalLength * w) - (viewPortU / 2.0) - (viewPortV / 2.0);
         pixel00Pos = viewportUpperLeft + ((pixelDeltaU + pixelDeltaV) * 0.5);
     }
 
