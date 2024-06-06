@@ -8,6 +8,7 @@
 #include "hittablelist.h"
 #include "triangle.h"
 #include "aabb.h"
+#include <thread>
 
 void addFaces(hittableList& world, const aiMesh* mesh)
 {
@@ -68,7 +69,7 @@ int main()
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 1920;
+    cam.imageWidth = 200;
     cam.samplesPerPixel = 5;
     cam.maxBounceDepth = 10;
     cam.vfov = 90;

@@ -1,8 +1,15 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <vector>
+#include <thread>
+
 #include "utilities.h"
 #include "hittable.h"
+
+class camera;
+
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const hittable& world, const camera& cam, std::vector<color>* output);
 
 class camera
 {
@@ -16,30 +23,63 @@ public:
     point3 lookAt = point3{0,0,-1};
     vec3 vUp = vec3{0,1,0};
 
+    double getInvPixelSamples() const { return pixelSamplesInv; }
+
     void render(const hittable& world)
     {
         initialize();
+
+        std::vector<std::thread> threadPool;
+        std::vector<color> output(imageWidth * imageHeight);
+
+        for(int y = 0; y < imageHeight; y++)
+        {
+            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::cref(world), *this, &output);
+        }
+
+        for(auto& thread : threadPool)
+        {
+            thread.join();
+        }
 
         std::ofstream ppm;
         ppm.open("output.ppm");
 
         ppm << "P3\n" << imageWidth << " " << imageHeight << " \n255\n";
 
-        for(int j = 0; j < imageHeight; j++)
+        for(int y = imageHeight; y >= 0; y--)
         {
-            for(int i = 0; i < imageWidth; i++)
+            for(int x = 0; x < imageWidth; x++)
             {
-                color pixelCol {0,0,0};
-                for(int s = 0; s < samplesPerPixel; s++)
-                {
-                    pixelCol += rayColor(getRay(i, j), maxBounceDepth, world);
-                }
-
-                writeColor(ppm, pixelCol * pixelSamplesInv);
+                writeColor(ppm, output[x + y * imageWidth]);
             }
         } 
 
         ppm.close();
+    }
+
+    ray getRay(int i, int j) const
+    {
+        vec3 offset = sampleSquare();
+        vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
+
+        return ray{cameraPos, pixelSample - cameraPos};
+    }
+
+    color rayColor(const ray& r, int depth, const hittable& world) const 
+    {
+        if(depth <= 0)
+            return vec3{0,0,0};
+
+        hitRecord rec;
+        if(world.hit(r, interval{0.001, infinity}, rec))
+        {
+            vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
+            return 0.5f * rayColor(ray{rec.point, direction}, depth - 1, world);
+        }
+
+        float a = r.direction().y() + 1.0f;
+        return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
     }
 
 private:
@@ -86,34 +126,28 @@ private:
         pixel00Pos = viewportUpperLeft + ((pixelDeltaU + pixelDeltaV) * 0.5);
     }
 
-    ray getRay(int i, int j) const
-    {
-        vec3 offset = sampleSquare();
-        vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
-
-        return ray{cameraPos, pixelSample - cameraPos};
-    }
-
     vec3 sampleSquare() const
     {
         return vec3{ randGen<float>() - 0.5f, randGen<float>() - 0.5f, 0.0f };
     }
-
-    color rayColor(const ray& r, int depth, const hittable& world) const 
-    {
-        if(depth <= 0)
-            return vec3{0,0,0};
-
-        hitRecord rec;
-        if(world.hit(r, interval{0.001, infinity}, rec))
-        {
-            vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
-            return 0.5f * rayColor(ray{rec.point, direction}, depth - 1, world);
-        }
-
-        float a = r.direction().y() + 1.0f;
-        return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
-    }
 };
 
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const hittable& world, const camera& cam, std::vector<color>* output)
+{
+    for(int y = j; y < range; y++)
+    {
+        for(int x = 0; x < nx; x++)
+        {
+            vec3 col {0,0,0};
+            for(int s = 0; s < ns; s++)
+            {
+                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, world);
+            }
+
+            col *= cam.getInvPixelSamples();
+
+            (*output)[y * nx + x] = col;
+        }
+    }
+}
 #endif

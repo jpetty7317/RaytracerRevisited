@@ -7,7 +7,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "-Ofast"
+                "-Ofast",
                 "-std=c++17",
                 "${file}",
                 "-o",

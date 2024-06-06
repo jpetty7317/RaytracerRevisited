@@ -6,7 +6,7 @@
 #include <fstream>
 #include <limits>
 #include <memory>
-#include <cstdlib>
+#include <random>
 
 // C++ std usings
 
@@ -31,7 +31,9 @@ inline T degreesToRadians(T degrees)
 template <typename T>
 inline T randGen()
 {
-    return rand() / (RAND_MAX + 1.0);
+    thread_local std::uniform_real_distribution<T> distribution(0.0, 1.0);
+    thread_local std::mt19937_64 generator;
+    return distribution(generator);
 }
 
 template <typename T, typename U>

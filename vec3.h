@@ -81,17 +81,6 @@ class vec3 {
             return *this /= length();
         }
 
-        static vec3 random() 
-        {
-            return vec3(randGen<float>(), randGen<float>(), randGen<float>());
-        }
-
-        template <typename T, typename U>
-        static vec3 random(T min, U max) 
-        {
-            return vec3(randGen<float>(min, max), randGen<float>(min, max), randGen<float>(min, max));
-        }
-
         static vec3 up() {return vec3 {0.0, 1.0, 0.0};} 
         static vec3 right() {return vec3 {1.0, 0.0, 0.0};} // Right handed coordinated (+x goes to the right)
         static vec3 forward() {return vec3{0.0, 0.0, -1.0};} // Right handed coordinates (-z goes into screen)
@@ -152,12 +141,13 @@ inline vec3 cross(const vec3& v1, const vec3& v2)
 
 inline vec3 randomInUnitSphere()
 {
-    while(true)
+    vec3 v {};
+    do
     {
-        vec3 v = vec3::random(-1, 1);
-        if(v.squaredLength() < 1)
-            return v;
-    }
+        v = 2.0f * vec3(randGen<float>(), randGen<float>(), randGen<float>());
+    } while (v.squaredLength() >= 1.0);
+
+    return v;
 }
 
 inline vec3 randomUnitVector()
