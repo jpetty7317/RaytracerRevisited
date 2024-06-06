@@ -144,7 +144,7 @@ inline vec3 randomInUnitSphere()
     vec3 v {};
     do
     {
-        v = 2.0f * vec3(randGen<float>(), randGen<float>(), randGen<float>());
+        v = 2.0f * vec3(randGen<float>(), randGen<float>(), randGen<float>()) - vec3{1,1,1};
     } while (v.squaredLength() >= 1.0);
 
     return v;

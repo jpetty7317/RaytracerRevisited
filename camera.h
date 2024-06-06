@@ -32,8 +32,9 @@ public:
         std::vector<std::thread> threadPool;
         std::vector<color> output(imageWidth * imageHeight);
 
-        for(int y = 0; y < imageHeight; y++)
+        for(int y = 0; y < imageHeight; y += 5)
         {
+            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, world, *this, &output);
             threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::cref(world), *this, &output);
         }
 
@@ -47,7 +48,7 @@ public:
 
         ppm << "P3\n" << imageWidth << " " << imageHeight << " \n255\n";
 
-        for(int y = imageHeight; y >= 0; y--)
+        for(int y = 0; y < imageHeight; y++)
         {
             for(int x = 0; x < imageWidth; x++)
             {
@@ -136,6 +137,9 @@ void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, con
 {
     for(int y = j; y < range; y++)
     {
+        if(y == ny)
+            break;
+
         for(int x = 0; x < nx; x++)
         {
             vec3 col {0,0,0};

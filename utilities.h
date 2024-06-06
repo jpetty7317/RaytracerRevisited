@@ -31,8 +31,8 @@ inline T degreesToRadians(T degrees)
 template <typename T>
 inline T randGen()
 {
-    thread_local std::uniform_real_distribution<T> distribution(0.0, 1.0);
-    thread_local std::mt19937_64 generator;
+    static thread_local std::uniform_real_distribution<T> distribution(0.0, 1.0);
+    static thread_local std::mt19937_64 generator;
     return distribution(generator);
 }
 

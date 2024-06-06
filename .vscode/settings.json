@@ -68,9 +68,25 @@
         "xlocmes": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "array": "cpp",
+        "cwctype": "cpp",
+        "deque": "cpp",
+        "numbers": "cpp",
+        "numeric": "cpp",
+        "queue": "cpp",
+        "random": "cpp",
+        "semaphore": "cpp",
+        "span": "cpp",
+        "variant": "cpp",
+        "*.tcc": "cpp",
+        "memory_resource": "cpp",
+        "string_view": "cpp",
+        "text_encoding": "cpp",
+        "cinttypes": "cpp"
     },
     "C_Cpp.default.includePath": [
         "C:\\msys64\\mingw64\\include"
-    ]
+    ],
+    "C_Cpp.intelliSenseEngine": "Tag Parser"
 }

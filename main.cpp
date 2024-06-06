@@ -69,12 +69,12 @@ int main()
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 200;
-    cam.samplesPerPixel = 5;
-    cam.maxBounceDepth = 10;
+    cam.imageWidth = 1920;
+    cam.samplesPerPixel = 10;
+    cam.maxBounceDepth = 50;
     cam.vfov = 90;
-    cam.lookFrom = point3{1.0, 5.0, 0.0};
-    cam.lookAt = point3{3.0, 5.0, 0.0};
+    cam.lookFrom = point3{0.0, 20.0, 0.0};
+    cam.lookAt = point3{3.0, 20.0, 0.0};
     cam.vUp = vec3{0,1,0};
 
     std::cout << "STARTING RENDER\n";
