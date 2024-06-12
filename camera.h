@@ -5,11 +5,11 @@
 #include <thread>
 
 #include "utilities.h"
-#include "hittable.h"
+#include "octree.h"
 
 class camera;
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const hittable& world, const camera& cam, std::vector<color>* output);
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const octree& oct, const camera& cam, std::vector<color>* output);
 
 class camera
 {
@@ -25,7 +25,7 @@ public:
 
     double getInvPixelSamples() const { return pixelSamplesInv; }
 
-    void render(const hittable& world)
+    void render(const octree& oct)
     {
         initialize();
 
@@ -34,8 +34,8 @@ public:
 
         for(int y = 0; y < imageHeight; y += 5)
         {
-            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, world, *this, &output);
-            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::cref(world), *this, &output);
+            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, oct, *this, &output);
+            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::cref(oct), *this, &output);
         }
 
         for(auto& thread : threadPool)
@@ -67,16 +67,16 @@ public:
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    color rayColor(const ray& r, int depth, const hittable& world) const 
+    color rayColor(const ray& r, int depth, const octree& oct) const 
     {
         if(depth <= 0)
             return vec3{0,0,0};
 
         hitRecord rec;
-        if(world.hit(r, interval{0.001, infinity}, rec))
+        if(oct.getRoot().hit(r, interval{0.001, infinity}, rec))
         {
             vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
-            return 0.5f * rayColor(ray{rec.point, direction}, depth - 1, world);
+            return 0.5f * rayColor(ray{rec.point, direction}, depth - 1, oct);
         }
 
         float a = r.direction().y() + 1.0f;
@@ -133,7 +133,7 @@ private:
     }
 };
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const hittable& world, const camera& cam, std::vector<color>* output)
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const octree& oct, const camera& cam, std::vector<color>* output)
 {
     for(int y = j; y < range; y++)
     {
@@ -145,7 +145,7 @@ void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, con
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
-                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, world);
+                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, oct);
             }
 
             col *= cam.getInvPixelSamples();

@@ -1,35 +1,39 @@
 #ifndef HITTABLE_LIST_H
 #define HITTABLE_LIST_H
 
-#include "hittable.h"
+#include "aabb.h"
 #include "utilities.h"
 
 #include <vector>
 
-class hittableList : public hittable
+class model : public hittable
 {
     public:
-        std::vector<shared_ptr<hittable>> objects;
+        aabb bounds {};
 
-        hittableList(){}
-        hittableList(shared_ptr<hittable> object) { }
+        model(){}
 
-        void clear() { objects.clear(); }
+        model(const point3& min, const point3& max) : bounds{min, max} {}
 
-        void addObject(shared_ptr<hittable> object)
+        void clear() { triangles.clear(); }
+
+        void addTriangle(shared_ptr<hittable> object)
         {
-            objects.push_back(object);
+            triangles.push_back(object);
         }
 
         bool hit(const ray& r, interval rayT, hitRecord& rec) const override
         {
+            if(!bounds.hit(r, rayT))
+                return false;
+
             hitRecord tempRec;
             bool hitAnything = false;
             float closestSoFar = rayT.max;
 
-            for(const auto& object: objects)
+            for(const auto& triangle: triangles)
             {
-                if(object->hit(r, interval{rayT.min, closestSoFar}, tempRec))
+                if(triangle->hit(r, interval{rayT.min, closestSoFar}, tempRec))
                 {
                     hitAnything = true;
                     closestSoFar = tempRec.t;
@@ -39,6 +43,9 @@ class hittableList : public hittable
 
             return hitAnything;
         }
+
+private:
+        std::vector<shared_ptr<hittable>> triangles;
 };
 
 #endif

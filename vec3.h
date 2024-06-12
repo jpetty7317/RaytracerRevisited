@@ -9,6 +9,7 @@ class vec3 {
 
     public:
         vec3(){}
+        vec3(float  x) : e {x,x,x} {}
         vec3(const vec3& v) : e{v.x(), v.y(), v.z()}{};
         vec3(float x, float y, float z): e {x, y ,z}{};
 

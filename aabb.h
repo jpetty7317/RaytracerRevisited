@@ -2,22 +2,22 @@
 #define AABB_H
 
 #include "hittable.h"
-#include "hittablelist.h"
 #include "utilities.h"
 #include <vector>
 
-class aabb : public hittable {
+class aabb
+{
 public:
     aabb(){};
 
     // optimize to not have to copy hittable list
-    aabb(const point3& min, const point3& max, hittableList model) : mMin{min}, mMax{max}, mModel{model} {}
+    aabb(const point3& min, const point3& max) : mMin{min}, mMax{max}, mSize{ max - min } {}
 
     const point3& min() const {return mMin;}
     const point3& max() const {return mMax;}
-    const hittableList& model() const { return mModel; }
+    const vec3& size() const {return mSize;}
 
-    bool hit(const ray& r, interval rayT, hitRecord& rec) const override
+    bool hit(const ray& r, interval rayT) const
     {
         for(int i = 0; i < 3; i++)
         {
@@ -34,14 +34,20 @@ public:
             if(rayT.max <= rayT.min)
                 return false;
         }
-        return model().hit(r, rayT, rec);
+        return true;
+    }
+
+    bool intersects(const aabb& b)
+    {
+        return (mMin.x() <= b.max().x()) && (mMax.x() >= b.min().x()) &&
+                (mMin.y() <= b.max().y()) && (mMax.y() >= b.min().y()) &&
+                (mMin.z() <= b.max().z()) && (mMax.z() >= b.min().z());
     }
 
 private:
     point3 mMin{};
     point3 mMax{};
-
-    hittableList mModel;
+    vec3 mSize{};
 };
 
 #endif
