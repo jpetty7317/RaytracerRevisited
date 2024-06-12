@@ -58,15 +58,17 @@ public:
             }
         }
 
+        bool hitChild = false;
         if(!hitMesh && !children.empty())
         {
             for(const node& n : children)
             {
-                n.hit(r, rayT, rec);
+                if(n.hit(r, rayT, rec))
+                    hitChild = true;
             }
         }
 
-        return hitMesh;
+        return hitMesh || hitChild;
     }
 
 private:
