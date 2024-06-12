@@ -15,7 +15,7 @@ class node : public hittable
 public:
     node(){}
 
-    node(const point3& c, const point3& s) : center{center}, 
+    node(const point3& c, const point3& s) : center{c}, 
                                                 bounds{point3{c - (s * 0.5f)}, point3{c + (s * 0.5f)}}, 
                                                 nodeSize{s.x()}{}
 
