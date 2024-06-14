@@ -8,7 +8,7 @@
 #include <tuple>
 #include <array>
 
-static const float MIN_CELL_SIZE = 1.0f;
+static const float MIN_CELL_SIZE = 1250.0f;
 
 class node : public hittable
 {
@@ -48,27 +48,45 @@ public:
         if(!bounds.hit(r, rayT))
             return false;
 
-        bool hitMesh = false;
-        if(!containedModels.empty())
-        {
-            for(auto m : containedModels)
-            {
-                if(m->hit(r, rayT, rec))
-                    hitMesh = true;
-            }
-        }
-
-        bool hitChild = false;
-        if(!hitMesh && !children.empty())
+        bool hitAnything = false;
+        hitRecord tempRec;
+        float closestSoFar = rayT.max;
+        if(!children.empty())
         {
             for(const node& n : children)
             {
-                if(n.hit(r, rayT, rec))
-                    hitChild = true;
+                if(n.hit(r, interval{rayT.min, closestSoFar}, tempRec))
+                {
+                    hitAnything = true;
+                    if(tempRec.t <= closestSoFar)
+                    {
+                        closestSoFar = tempRec.t;
+                        rec = tempRec;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if(!containedModels.empty())
+            {
+
+                for(shared_ptr<model> m : containedModels)
+                {
+                    if(m->hit(r, interval{rayT.min, closestSoFar}, tempRec))
+                    {
+                        hitAnything = true;
+                        if(tempRec.t <= closestSoFar)
+                        {
+                            closestSoFar = tempRec.t;
+                            rec = tempRec;
+                        }
+                    }
+                }
             }
         }
 
-        return hitMesh || hitChild;
+        return hitAnything;
     }
 
 private:
@@ -80,7 +98,7 @@ private:
 
     bool canSplit(float extent, float objectSize)
     {
-        return (extent > objectSize) && (extent > MIN_CELL_SIZE);
+        return extent > MIN_CELL_SIZE;
     }
 
     void divide(float quarter, float size)

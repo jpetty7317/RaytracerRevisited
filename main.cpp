@@ -82,6 +82,6 @@ int main()
     std::cout << "STARTING RENDER\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     cam.render(oct); 
-    std::cout << "TIME TO RENDER: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - now).count() << '\n';
+    std::cout << "TIME TO RENDER: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - now).count() << '\n';
     return 0;
 }
