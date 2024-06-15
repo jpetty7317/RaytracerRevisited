@@ -11,7 +11,7 @@
 #include <thread>
 #include "octree.h"
 
-void addFaces(octree& oct, const aiMesh* mesh)
+void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
 {
     const aiAABB& bounds = mesh->mAABB;
     vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
@@ -33,20 +33,28 @@ void addFaces(octree& oct, const aiMesh* mesh)
     }
 
 
-    oct.addObject(hitMesh);
+    modelList.push_back(hitMesh);
 }
 
-void buildOctree(octree& oct, aiNode* node, const aiScene* scene)
+void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene)
 {
     for(int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        addFaces(oct, mesh);
+        addFaces(modelList, mesh);
     }
 
     for(int i = 0; i < node->mNumChildren; i++)
     {
-        buildOctree(oct, node->mChildren[i], scene);
+        buildModelList(modelList, node->mChildren[i], scene);
+    }
+}
+
+void buildOctree(octree& oct, std::vector<shared_ptr<model>>& modelList)
+{
+    for(int i = 0; i < modelList.size(); i++)
+    {
+        oct.addObject(modelList[i], i);
     }
 }
 
@@ -66,18 +74,24 @@ int main()
         std::cout << "HEY WE IMPORTED THE THING!!! " << scene->mRootNode->mName.C_Str() << "\n";
     }
 
-    octree oct { point3{0,0,0}, 10000 };
-    buildOctree(oct, scene->mRootNode, scene);
+    std::vector<shared_ptr<model>> globalModelList;
+    buildModelList(globalModelList, scene->mRootNode, scene);
+
+    octree oct { point3{0,0,0}, 10000, &globalModelList };
+    buildOctree(oct, globalModelList);
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 400;
-    cam.samplesPerPixel = 5;
-    cam.maxBounceDepth = 100;
+    cam.imageWidth = 1920;
+    cam.samplesPerPixel = 10;
+    cam.maxBounceDepth = 50;
     cam.vfov = 90;
     cam.lookFrom = point3{0.0, 530.0, 0.0};
-    cam.lookAt = point3{3.0, 530.0, 0.0};
+    cam.lookAt = point3{-3.0, 530.0, 0.0};
     cam.vUp = vec3{0,1,0};
+
+    unsigned int n = std::thread::hardware_concurrency();
+    std::cout << n << " concurrent threads are supported.\n";
 
     std::cout << "STARTING RENDER\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();

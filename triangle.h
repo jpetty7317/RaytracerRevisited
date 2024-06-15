@@ -70,6 +70,78 @@ class triangle : public hittable
                 return false;
             }
         }
+
+        void Project(const std::vector<point3>& points, const vec3& axis, interval& minMax)
+        {
+            for(auto& p : points)
+            {
+                float val = dot(axis, p);
+                if(val < minMax.min) minMax.min = val;
+                if(val > minMax.max) minMax.max = val;
+            }
+        }
+
+        bool intersectsAABB(const aabb& box)
+        {
+            std::vector<vec3> boxNormals {{1,0,0},
+                                            {0,1,0},
+                                            {0,0,1}};
+
+            interval boxMinMax;
+            interval triMinMax;
+            for(int i = 0; i < 3; i++)
+            {
+                Project({p0, p1, p2}, boxNormals[i], boxMinMax);
+                if(boxMinMax.max < box.min()[i] || boxMinMax.min > box.max()[i])
+                {
+                    //std::cout << 1 << " " << i << '\n';
+                    return false;
+                }
+            }
+
+            //Get tri edges
+            vec3 e1 = p1 - p0;
+            vec3 e2 = p2 - p0;
+            vec3 normal = cross(e1, e2).normalize();
+            float triOffset = dot(normal, p0);
+            std::vector<point3> boxVerts {{box.min()},
+                                            {box.max()},
+                                            {box.min() + vec3{1,0,0} * box.size().x()},
+                                            {box.min() + vec3{0,1,0} * box.size().x()},
+                                            {box.min() + vec3{0,0,1} * box.size().x()},
+                                            {box.max() - vec3(1,0,0) * box.size().x()},
+                                            {box.max() - vec3(0,1,0) * box.size().x()},
+                                            {box.max() - vec3(0,0,1) * box.size().x()}};
+            Project(boxVerts, normal, triMinMax);
+            if(triMinMax.max < triOffset || triMinMax.min > triOffset)
+            {
+                //std::cout << 2 << '\n';
+                return false;
+            }
+
+            std::vector<vec3> triEdges = {{p0 - p1},
+                                            {p1 - p2},
+                                            {p2 - p0}};
+            
+            for(int i = 0; i < 3; i++)
+            {
+                for(int j = 0; j < 3; j++)
+                {
+                    vec3 axis {cross(triEdges[i], boxNormals[i])};
+                    Project(boxVerts, axis, boxMinMax);
+                    Project({p0, p1, p2}, axis, triMinMax);
+                    if(boxMinMax.max <= triMinMax.min || boxMinMax.min >= triMinMax.max)
+                    {
+                        //std::cout << 3 << " " << i*j << '\n';
+                        return false;
+                    }
+                }
+            }
+
+            //std::cout << 4 << '\n';
+
+            return true;
+        }
 };
 
 #endif
