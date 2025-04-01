@@ -85,6 +85,8 @@ class vec3 {
         static vec3 up() {return vec3 {0.0, 1.0, 0.0};} 
         static vec3 right() {return vec3 {1.0, 0.0, 0.0};} // Right handed coordinated (+x goes to the right)
         static vec3 forward() {return vec3{0.0, 0.0, -1.0};} // Right handed coordinates (-z goes into screen)
+        static vec3 posInf() {return vec3{infinity, infinity, infinity};}
+        static vec3 negInf() {return vec3{-infinity, -infinity, -infinity};}
 };
 
 // point alias for semantics
@@ -126,6 +128,11 @@ inline vec3 operator/(const vec3& v1, const float v)
     return vec3 {v1[0] / v, v1[1] / v, v1[2] / v};
 }
 
+inline bool operator==(const vec3& v1, const vec3& v2)
+{
+    return v1.x() == v2.x() && v1.y() == v2.y() && v1.z() == v2.z();
+}
+
 inline float dot(const vec3& v1, const vec3& v2)
 {
     return  v1[0] * v2[0]
@@ -163,4 +170,13 @@ inline vec3 randomVectorOnHemisphere(const vec3& normal)
     return dot(onUnitSphere, normal) > 0.0 ? onUnitSphere : -onUnitSphere;
 }
 
+inline vec3 vmin(const vec3& a, const vec3& b)
+{
+    return vec3{fminf(a.x(), b.x()), fminf(a.y(), b.y()), fminf(a.z(), b.z())};
+}
+
+inline vec3 vmax(const vec3& a, const vec3& b)
+{
+    return vec3{fmaxf(a.x(), b.x()), fmaxf(a.y(), b.y()), fmaxf(a.z(), b.z())};
+}
 #endif

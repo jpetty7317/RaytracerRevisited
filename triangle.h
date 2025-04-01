@@ -13,10 +13,15 @@ class triangle : public hittable
         vec3 p0 {};
         vec3 p1 {};
         vec3 p2 {};
+        vec3 cent {};
 
     public:
+        triangle(const vec3& a, const vec3& b, const vec3& c): p0{a}, p1{b}, p2{c}, cent{(a + b + c) * 0.33333f}{} 
 
-        triangle(const vec3& a, const vec3& b, const vec3& c): p0{a}, p1{b}, p2{c}{} 
+        const point3& v0() const { return p0; }
+        const point3& v1() const { return p1; }
+        const point3& v2() const { return p2; }
+        const point3& centroid() const { return cent; }
 
         bool hit(const ray& r, interval rayT, hitRecord& rec) const override
         {
