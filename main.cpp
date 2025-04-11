@@ -56,7 +56,7 @@ int main()
     const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
-    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FlipWindingOrder
+    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs
     //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

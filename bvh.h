@@ -201,6 +201,8 @@ public:
 
     bool hit(const ray& r, interval rayT, hitRecord& rec)
     {
+        hitRecord tempRec;
+        float closestSoFar = rayT.max;
         bool hitAnything = false;
         bvhNode* n = &bvhNodes[0];
         std::stack<bvhNode*> stack;
@@ -208,8 +210,6 @@ public:
         {
             if(n->isLeaf())
             {
-                hitRecord tempRec;
-                float closestSoFar = rayT.max;
                 for(int i = 0; i < n->triCount; i++)
                 {
                     if((*triangles)[triIndices[n->leftFirst + i]]->hit(r, interval{rayT.min, closestSoFar}, tempRec))
@@ -235,10 +235,10 @@ public:
             bvhNode* child2 = &bvhNodes[n->leftFirst + 1];
 
             float hit1, hit2;
-            child1->bounds.hit(r, rayT, rec);
-            hit1 = rec.t;
-            child2->bounds.hit(r, rayT, rec);
-            hit2 = rec.t;
+            child1->bounds.hit(r, rayT, tempRec);
+            hit1 = tempRec.t;
+            child2->bounds.hit(r, rayT, tempRec);
+            hit2 = tempRec.t;
             
             if(hit1 > hit2)
             {
