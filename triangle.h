@@ -86,7 +86,7 @@ class triangle : public hittable
             }
         }
 
-        bool intersectsAABB(const aabb& box)
+        bool intersectsAABB(aabb& box)
         {
             std::vector<vec3> boxNormals {{1,0,0},
                                             {0,1,0},

@@ -2,15 +2,17 @@
 #define HITTABLE_LIST_H
 
 #include "aabb.h"
+#include "bvh.h"
 #include "triangle.h"
 #include "utilities.h"
 
 #include <vector>
 
-class model : public hittable
+class model// : public hittable
 {
     public:
         aabb bounds {};
+        bvh mbvh {};
 
         std::vector<shared_ptr<triangle>> triangles;
 
@@ -25,9 +27,9 @@ class model : public hittable
             triangles.push_back(object);
         }
 
-        bool hit(const ray& r, interval rayT, hitRecord& rec) const override
+        bool hit(const ray& r, interval rayT, hitRecord& rec)// const override
         {
-            if(!bounds.hit(r, rayT))
+            /*if(!bounds.hit(r, rayT))
                 return false;
 
             hitRecord tempRec;
@@ -44,7 +46,8 @@ class model : public hittable
                 }
             }
 
-            return hitAnything;
+            return hitAnything;*/
+            return mbvh.hit(r, rayT, rec);
         }
 };
 

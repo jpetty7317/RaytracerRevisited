@@ -5,11 +5,11 @@
 #include <thread>
 
 #include "utilities.h"
-#include "octree.h"
+#include "model.h"
 
 class camera;
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const octree& oct, const camera& cam, std::vector<color>* output);
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, std::vector<shared_ptr<model>>& mods, const camera& cam, std::vector<color>* output);
 
 class camera
 {
@@ -25,7 +25,7 @@ public:
 
     double getInvPixelSamples() const { return pixelSamplesInv; }
 
-    void render(const octree& oct)
+    void render(std::vector<shared_ptr<model>>& modelList)
     {
         initialize();
 
@@ -34,8 +34,8 @@ public:
 
         for(int y = 0; y < imageHeight; y += 5)
         {
-            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, oct, *this, &output);
-            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::cref(oct), *this, &output);
+            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, modelList, *this, &output);
+            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::ref(modelList), *this, &output);
         }
 
         for(auto& thread : threadPool)
@@ -62,22 +62,32 @@ public:
     ray getRay(int i, int j) const
     {
         vec3 offset = sampleSquare();
-        vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
+        //vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
+        vec3 pixelSample = pixel00Pos + (i * pixelDeltaU) + (j * pixelDeltaV);
 
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    color rayColor(const ray& r, int depth, const octree& oct) const 
+    color rayColor(const ray& r, int depth, std::vector<shared_ptr<model>>& mods) const 
     {
         if(depth <= 0)
             return vec3{0,0,0};
 
         hitRecord rec;
-        if(oct.getRoot().hit(r, interval{0.001, infinity}, rec))
+        interval minMax {0.001f, infinity};
+        bool hitAnything = false;
+        float closestSoFar = infinity;
+        for(const shared_ptr<model>& m : mods)
         {
-            vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
-            return 0.5f * rayColor(ray{rec.point, direction}, depth - 1, oct);
+            if(m->hit(r, interval{minMax.min, closestSoFar}, rec))
+            {
+                hitAnything = true;
+                closestSoFar = rec.t;
+            }
         }
+
+        if(hitAnything)
+            return rec.normal;
 
         float a = r.direction().y() + 1.0f;
         return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
@@ -133,7 +143,7 @@ private:
     }
 };
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, const octree& oct, const camera& cam, std::vector<color>* output)
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, std::vector<shared_ptr<model>>& mods, const camera& cam, std::vector<color>* output)
 {
     for(int y = j; y < range; y++)
     {
@@ -145,7 +155,7 @@ void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, con
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
-                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, oct);
+                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, mods);
             }
 
             col *= cam.getInvPixelSamples();

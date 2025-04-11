@@ -9,7 +9,6 @@
 #include "triangle.h"
 #include "aabb.h"
 #include <thread>
-#include "octree.h"
 
 void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
 {
@@ -32,6 +31,7 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
         ));
     }
 
+    hitMesh->mbvh = { &hitMesh->triangles, hitMesh->triangles.size() };
 
     modelList.push_back(hitMesh);
 }
@@ -50,19 +50,14 @@ void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, con
     }
 }
 
-void buildOctree(octree& oct, std::vector<shared_ptr<model>>& modelList)
-{
-    for(int i = 0; i < modelList.size(); i++)
-    {
-        oct.addObject(modelList[i], i);
-    }
-}
-
 int main()
 {
     Assimp::Importer importer{};
     const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
+
+    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FlipWindingOrder
+    //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -77,17 +72,14 @@ int main()
     std::vector<shared_ptr<model>> globalModelList;
     buildModelList(globalModelList, scene->mRootNode, scene);
 
-    octree oct { point3{0,0,0}, 10000, &globalModelList };
-    buildOctree(oct, globalModelList);
-
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 1920;
-    cam.samplesPerPixel = 10;
-    cam.maxBounceDepth = 50;
+    cam.imageWidth = 400;//1920;
+    cam.samplesPerPixel = 1;//10;
+    cam.maxBounceDepth = 1;//50;
     cam.vfov = 90;
-    cam.lookFrom = point3{0.0, 530.0, 0.0};
-    cam.lookAt = point3{-3.0, 530.0, 0.0};
+    cam.lookFrom = point3{0.0, 530.0, 0.0};//point3{0.0, 1.7, 5.0};//
+    cam.lookAt = point3{-3.0, 530.0, 0.0};//point3{0.0, 1.7, 0.0};//
     cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();
@@ -95,7 +87,7 @@ int main()
 
     std::cout << "STARTING RENDER\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    cam.render(oct); 
+    cam.render(globalModelList); 
     std::cout << "TIME TO RENDER: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - now).count() << '\n';
     return 0;
 }
