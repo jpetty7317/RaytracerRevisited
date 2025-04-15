@@ -184,16 +184,16 @@ private:
 
         updateNodeBounds(0);
         subdivide(0);
+
+        bvhBounds = {root.bounds.min(), root.bounds.max()};
     }
 public:
     aabb bvhBounds{};
 
     bvh(){};
 
-    bvh(std::vector<shared_ptr<triangle>>* t, int N)
+    bvh(std::vector<shared_ptr<triangle>>* t, int N) : triangles(t), triCount(N)
     {
-        triangles = t;
-        triCount = N;
         triIndices.resize(N);
         bvhNodes.resize(2 * N);
         build();

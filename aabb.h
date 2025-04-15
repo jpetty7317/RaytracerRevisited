@@ -17,7 +17,7 @@ public:
     point3& max()  {return mMax;}
     vec3& size() {return mSize;}
 
-    bool hit(const ray& r, interval rayT) const
+    /*bool hit(const ray& r, interval rayT) const
     {
         for(int i = 0; i < 3; i++)
         {
@@ -35,7 +35,7 @@ public:
                 return false;
         }
         return true;
-    }
+    }*/
 
     bool hit(const ray& r, interval rayT, hitRecord& rec) const
     {

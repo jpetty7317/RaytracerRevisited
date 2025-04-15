@@ -8,6 +8,7 @@
 #include "model.h"
 #include "triangle.h"
 #include "aabb.h"
+#include "tlas.h"
 #include <thread>
 
 void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
@@ -72,14 +73,16 @@ int main()
     std::vector<shared_ptr<model>> globalModelList;
     buildModelList(globalModelList, scene->mRootNode, scene);
 
+    tlas t {&globalModelList, globalModelList.size()};
+
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 400;//1920;
+    cam.imageWidth = 400;
     cam.samplesPerPixel = 1;//10;
     cam.maxBounceDepth = 1;//50;
     cam.vfov = 90;
     cam.lookFrom = point3{0.0, 530.0, 0.0};//point3{0.0, 1.7, 5.0};//
-    cam.lookAt = point3{-3.0, 530.0, 0.0};//point3{0.0, 1.7, 0.0};//
+    cam.lookAt = point3{-3.0, 530.0, 0.0};//point3{0.0, 1.7, 0.0};//point3{-3.0, 530.0, 0.0};//
     cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();
@@ -87,7 +90,7 @@ int main()
 
     std::cout << "STARTING RENDER\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    cam.render(globalModelList); 
+    cam.render(t); 
     std::cout << "TIME TO RENDER: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - now).count() << '\n';
     return 0;
 }

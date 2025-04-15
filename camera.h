@@ -5,11 +5,11 @@
 #include <thread>
 
 #include "utilities.h"
-#include "model.h"
+#include "tlas.h"
 
 class camera;
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, std::vector<shared_ptr<model>>& mods, const camera& cam, std::vector<color>* output);
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, tlas& tlas, const camera& cam, std::vector<color>* output);
 
 class camera
 {
@@ -25,7 +25,7 @@ public:
 
     double getInvPixelSamples() const { return pixelSamplesInv; }
 
-    void render(std::vector<shared_ptr<model>>& modelList)
+    void render(tlas& t)
     {
         initialize();
 
@@ -34,8 +34,8 @@ public:
 
         for(int y = 0; y < imageHeight; y += 5)
         {
-            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, modelList, *this, &output);
-            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::ref(modelList), *this, &output);
+            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, t, *this, &output);
+            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::ref(t), *this, &output);
         }
 
         for(auto& thread : threadPool)
@@ -68,26 +68,17 @@ public:
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    color rayColor(const ray& r, int depth, std::vector<shared_ptr<model>>& mods) const 
+    color rayColor(const ray& r, int depth, tlas& t) const 
     {
         if(depth <= 0)
             return vec3{0,0,0};
 
         hitRecord rec;
-        interval minMax {0.001f, infinity};
-        bool hitAnything = false;
-        float closestSoFar = infinity;
-        for(const shared_ptr<model>& m : mods)
+        if(t.hit(r, interval{0.001f, infinity}, rec))
         {
-            if(m->hit(r, interval{minMax.min, closestSoFar}, rec))
-            {
-                hitAnything = true;
-                closestSoFar = rec.t;
-            }
+            vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
+            return rec.normal;// 0.5f * rayColor(ray{rec.point, diection}, depth - 1, t);
         }
-
-        if(hitAnything)
-            return rec.normal;
 
         float a = r.direction().y() + 1.0f;
         return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
@@ -143,7 +134,7 @@ private:
     }
 };
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, std::vector<shared_ptr<model>>& mods, const camera& cam, std::vector<color>* output)
+void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, tlas& t, const camera& cam, std::vector<color>* output)
 {
     for(int y = j; y < range; y++)
     {
@@ -155,7 +146,7 @@ void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, std
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
-                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, mods);
+                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, t);
             }
 
             col *= cam.getInvPixelSamples();
