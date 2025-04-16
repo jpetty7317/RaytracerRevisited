@@ -1,7 +1,6 @@
 #ifndef AABB_H
 #define AABB_H
 
-#include "hittable.h"
 #include "utilities.h"
 #include <vector>
 
@@ -17,45 +16,27 @@ public:
     point3& max()  {return mMax;}
     vec3& size() {return mSize;}
 
-    /*bool hit(const ray& r, interval rayT) const
+    float hit(const ray& r)
     {
-        for(int i = 0; i < 3; i++)
-        {
-            float invDir = r.invDirection()[i];
-            float t0 = (mMin[i] - r.origin()[i]) * invDir;
-            float t1 = (mMax[i] - r.origin()[i]) * invDir;
+        float tx1 = (mMin.x() - r.origin().x()) * r.invDirection().x();
+        float tx2 = (mMax.x() - r.origin().x()) * r.invDirection().x();
+        float tMin = std::min(tx1, tx2);
+        float tMax = std::max(tx1, tx2);
 
-            if(invDir < 0.0f)
-                std::swap(t0, t1);
+        float ty1 = (mMin.y() - r.origin().y()) * r.invDirection().y();
+        float ty2 = (mMax.y() - r.origin().y()) * r.invDirection().y();
+        tMin = std::max(tMin, std::min(ty1, ty2));
+        tMax = std::min(tMax, std::max(ty1, ty2));
 
-            rayT.min = t0 > rayT.min ? t0 : rayT.min;
-            rayT.max = t1 < rayT.max ? t1 : rayT.max;
+        float tz1 = (mMin.z() - r.origin().z()) * r.invDirection().z();
+        float tz2 = (mMax.z() - r.origin().z()) * r.invDirection().z();
+        tMin = std::max(tMin, std::min(tz1, tz2));
+        tMax = std::min(tMax, std::max(tz1, tz2));
 
-            if(rayT.max <= rayT.min)
-                return false;
-        }
-        return true;
-    }*/
-
-    bool hit(const ray& r, interval rayT, hitRecord& rec) const
-    {
-        for(int i = 0; i < 3; i++)
-        {
-            float invDir = r.invDirection()[i];
-            float t0 = (mMin[i] - r.origin()[i]) * invDir;
-            float t1 = (mMax[i] - r.origin()[i]) * invDir;
-
-            if(invDir < 0.0f)
-                std::swap(t0, t1);
-
-            rayT.min = t0 > rayT.min ? t0 : rayT.min;
-            rayT.max = t1 < rayT.max ? t1 : rayT.max;
-
-            if(rayT.max <= rayT.min)
-                return false;
-        }
-        rec.t = rayT.min;
-        return true;
+        if(tMax >= tMin && tMin < r.t && tMax > 0.0f)
+            return tMin;
+        else
+            return infinity;
     }
 
     bool intersects(aabb& b)

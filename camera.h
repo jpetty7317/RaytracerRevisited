@@ -62,22 +62,24 @@ public:
     ray getRay(int i, int j) const
     {
         vec3 offset = sampleSquare();
-        //vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
-        vec3 pixelSample = pixel00Pos + (i * pixelDeltaU) + (j * pixelDeltaV);
+        vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
+        //vec3 pixelSample = pixel00Pos + (i * pixelDeltaU) + (j * pixelDeltaV);
 
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    color rayColor(const ray& r, int depth, tlas& t) const 
+    color rayColor(ray& r, int depth, tlas& t) const 
     {
         if(depth <= 0)
             return vec3{0,0,0};
 
-        hitRecord rec;
-        if(t.hit(r, interval{0.001f, infinity}, rec))
+        t.hit(r);
+
+        if(r.t != infinity)
         {
-            vec3 direction = rec.normal + randomVectorOnHemisphere(rec.normal);
-            return rec.normal;// 0.5f * rayColor(ray{rec.point, diection}, depth - 1, t);
+            vec3 direction = r.normal + randomVectorOnHemisphere(r.normal);
+            r = ray{r.at(r.t), direction};
+            return 0.5f * rayColor(r, depth - 1, t);
         }
 
         float a = r.direction().y() + 1.0f;
@@ -146,7 +148,8 @@ void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, tla
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
-                col += cam.rayColor(cam.getRay(x, y), maxBounceDepth, t);
+                ray r = cam.getRay(x, y);
+                col += cam.rayColor(r, maxBounceDepth, t);
             }
 
             col *= cam.getInvPixelSamples();

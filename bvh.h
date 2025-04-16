@@ -199,11 +199,8 @@ public:
         build();
     }
 
-    bool hit(const ray& r, interval rayT, hitRecord& rec)
+    void hit(ray& r)
     {
-        hitRecord tempRec;
-        float closestSoFar = rayT.max;
-        bool hitAnything = false;
         bvhNode* n = &bvhNodes[0];
         std::stack<bvhNode*> stack;
         while(true)
@@ -211,14 +208,7 @@ public:
             if(n->isLeaf())
             {
                 for(int i = 0; i < n->triCount; i++)
-                {
-                    if((*triangles)[triIndices[n->leftFirst + i]]->hit(r, interval{rayT.min, closestSoFar}, tempRec))
-                    {
-                        hitAnything = true;
-                        closestSoFar = tempRec.t;
-                        rec = tempRec;
-                    }
-                }
+                    (*triangles)[triIndices[n->leftFirst + i]]->hit(r);
 
                 if(stack.size() > 0)
                 {
@@ -235,10 +225,8 @@ public:
             bvhNode* child2 = &bvhNodes[n->leftFirst + 1];
 
             float hit1, hit2;
-            child1->bounds.hit(r, rayT, tempRec);
-            hit1 = tempRec.t;
-            child2->bounds.hit(r, rayT, tempRec);
-            hit2 = tempRec.t;
+            hit1 = child1->bounds.hit(r);
+            hit2 = child2->bounds.hit(r);
             
             if(hit1 > hit2)
             {
@@ -248,13 +236,11 @@ public:
 
             if(hit1 == infinity)
             {
-                if(stack.size() > 0)
-                {
-                    n = stack.top();
-                    stack.pop();
-                }
-                else
+                if(stack.size() == 0)
                     break;
+
+                n = stack.top();
+                stack.pop();
             }
             else
             {
@@ -263,8 +249,6 @@ public:
                     stack.push(child2);
             }
         }
-
-        return hitAnything;
     }
 };
 

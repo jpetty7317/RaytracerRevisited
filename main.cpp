@@ -4,7 +4,6 @@
 #include <assimp/postprocess.h>
 #include <chrono>
 #include "camera.h"
-#include "hittable.h"
 #include "model.h"
 #include "triangle.h"
 #include "aabb.h"
@@ -77,12 +76,12 @@ int main()
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 400;
-    cam.samplesPerPixel = 1;//10;
-    cam.maxBounceDepth = 1;//50;
+    cam.imageWidth = 1920;
+    cam.samplesPerPixel = 10;
+    cam.maxBounceDepth = 50;
     cam.vfov = 90;
-    cam.lookFrom = point3{0.0, 530.0, 0.0};//point3{0.0, 1.7, 5.0};//
-    cam.lookAt = point3{-3.0, 530.0, 0.0};//point3{0.0, 1.7, 0.0};//point3{-3.0, 530.0, 0.0};//
+    cam.lookFrom = point3{0.0, 530.0, 0.0};
+    cam.lookAt = point3{-3.0, 530.0, 0.0};
     cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();

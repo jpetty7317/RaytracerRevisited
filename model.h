@@ -26,29 +26,6 @@ class model// : public hittable
         {
             triangles.push_back(object);
         }
-
-        bool hit(const ray& r, interval rayT, hitRecord& rec)// const override
-        {
-            /*if(!bounds.hit(r, rayT))
-                return false;
-
-            hitRecord tempRec;
-            bool hitAnything = false;
-            float closestSoFar = rayT.max;
-
-            for(const auto& triangle: triangles)
-            {
-                if(triangle->hit(r, interval{rayT.min, closestSoFar}, tempRec))
-                {
-                    hitAnything = true;
-                    closestSoFar = tempRec.t;
-                    rec = tempRec;
-                }
-            }
-
-            return hitAnything;*/
-            return mbvh.hit(r, rayT, rec);
-        }
 };
 
 #endif

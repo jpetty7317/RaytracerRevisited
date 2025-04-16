@@ -102,31 +102,22 @@ public:
         build();
     }
 
-    bool hit(const ray& r, interval rayT, hitRecord& rec)
+    void hit(ray& r)
     {
-        hitRecord tempRec;
-        float closestSoFar = rayT.max;
-        bool hitAnything = false;
         tlasNode* n = &tlasNodes[0];
         std::stack<tlasNode*> stack;
         while(true)
         {
             if(n->isLeaf())
             {
-                if((*blas)[n->blas]->mbvh.hit(r, interval{rayT.min, closestSoFar}, tempRec))
-                {
-                    hitAnything = true;
-                    closestSoFar = tempRec.t;
-                    rec = tempRec;
-                }
-
-                if(stack.size() > 0)
-                {
-                    n = stack.top();
-                    stack.pop();
-                }
-                else
+                (*blas)[n->blas]->mbvh.hit(r);
+                
+                if(stack.size() == 0)
                     break;
+
+                n = stack.top();
+                stack.pop();
+                
                 continue;
             }
 
@@ -134,11 +125,9 @@ public:
             tlasNode* child2 = &tlasNodes[n->leftRight >> 16];
 
             float hit1, hit2;
-            child1->bounds.hit(r, rayT, tempRec);
-            hit1 = tempRec.t;
-            child2->bounds.hit(r, rayT, tempRec);
-            hit2 = tempRec.t;
-
+            hit1 = child1->bounds.hit(r);
+            hit2 = child2->bounds.hit(r);
+            
             if(hit1 > hit2)
             {
                 std::swap(hit1, hit2);
@@ -147,13 +136,11 @@ public:
 
             if(hit1 == infinity)
             {
-                if(stack.size() > 0)
-                {
-                    n = stack.top();
-                    stack.pop();
-                }
-                else
+                if(stack.size() == 0)
                     break;
+
+                n = stack.top();
+                stack.pop();
             }
             else
             {
@@ -162,8 +149,6 @@ public:
                     stack.push(child2);
             }
         }
-
-        return hitAnything;
     }
 };
 
