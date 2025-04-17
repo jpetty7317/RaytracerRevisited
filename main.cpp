@@ -31,7 +31,7 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
         ));
     }
 
-    hitMesh->mbvh = { &hitMesh->triangles, hitMesh->triangles.size() };
+    hitMesh->mbvh = { &hitMesh->triangles, (int)hitMesh->triangles.size() };
 
     modelList.push_back(hitMesh);
 }
@@ -72,7 +72,7 @@ int main()
     std::vector<shared_ptr<model>> globalModelList;
     buildModelList(globalModelList, scene->mRootNode, scene);
 
-    tlas t {&globalModelList, globalModelList.size()};
+    tlas t {&globalModelList, (int)globalModelList.size()};
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;

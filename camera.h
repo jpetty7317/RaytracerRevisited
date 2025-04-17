@@ -9,7 +9,7 @@
 
 class camera;
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, tlas& tlas, const camera& cam, std::vector<color>* output);
+void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& tlas, const camera& cam, std::vector<color>* output);
 
 class camera
 {
@@ -32,10 +32,16 @@ public:
         std::vector<std::thread> threadPool;
         std::vector<color> output(imageWidth * imageHeight);
 
-        for(int y = 0; y < imageHeight; y += 5)
+        int tX = (int)std::ceil((float)imageWidth / 16.0f);
+        int tY = (int)std::ceil((float)imageHeight / 16.0f);
+        int numTiles = tX * tY;
+        for(int tile = 0; tile < numTiles; tile++)
         {
-            //renderRow(y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, t, *this, &output);
-            threadPool.emplace_back(renderRow, y, y + 5, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::ref(t), *this, &output);
+            int x = tile % (int)tX;
+            int y = tile / (int)tX;
+
+            threadPool.emplace_back(renderRow, x, y, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, std::ref(t), *this, &output);
+            //renderRow(x, y, imageWidth, imageHeight, samplesPerPixel, maxBounceDepth, t, *this, &output);
         }
 
         for(auto& thread : threadPool)
@@ -136,15 +142,18 @@ private:
     }
 };
 
-void renderRow(int j, int range, int nx, int ny, int ns, int maxBounceDepth, tlas& t, const camera& cam, std::vector<color>* output)
+void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& t, const camera& cam, std::vector<color>* output)
 {
-    for(int y = j; y < range; y++)
+    for(int v = 0; v < 16; v++)
     {
-        if(y == ny)
-            break;
-
-        for(int x = 0; x < nx; x++)
+        for(int u = 0; u < 16; u++)
         {
+            float x = (tx * 16 + u);
+            float y = (ty * 16 + v);
+
+            if(x >= nx || y >= ny)
+                continue;
+
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
