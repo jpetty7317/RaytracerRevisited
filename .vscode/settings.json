@@ -87,7 +87,7 @@
         "stack": "cpp"
     },
     "C_Cpp.default.includePath": [
-        "C:\\msys64\\mingw64\\include"
+        "C:\\msys64\\ucrt64\\include"
     ],
     "C_Cpp.intelliSenseEngine": "Tag Parser"
 }
