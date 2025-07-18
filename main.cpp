@@ -55,7 +55,7 @@ void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, con
 int main()
 {
     Assimp::Importer importer{};
-    const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs 
+    const aiScene* scene = importer.ReadFile("sponza/sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs
@@ -93,9 +93,9 @@ int main()
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 1920;
-    cam.samplesPerPixel = 10;
-    cam.maxBounceDepth = 50;
+    cam.imageWidth = 1280;
+    cam.samplesPerPixel = 1;
+    cam.maxBounceDepth = 5;
     cam.vfov = 90;
     cam.lookFrom = point3{0.0, 530.0, 0.0};
     cam.lookAt = point3{-3.0, 530.0, 0.0};
