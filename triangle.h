@@ -2,6 +2,7 @@
 #define TRIANGLE_H
 
 #include "utilities.h"
+#include "material.h"
 
 
 // TODO: Maybe figure out if the material can be known ahead of time. Knowing it's opaque means we can discard 
@@ -13,9 +14,10 @@ class triangle
         vec3 p1 {};
         vec3 p2 {};
         vec3 cent {};
+        shared_ptr<material> mat;
 
     public:
-        triangle(const vec3& a, const vec3& b, const vec3& c): p0{a}, p1{b}, p2{c}, cent{(a + b + c) * 0.33333f}{} 
+        triangle(const vec3& a, const vec3& b, const vec3& c, shared_ptr<material> m): p0{a}, p1{b}, p2{c}, cent{(a + b + c) * 0.33333f}, mat{m}{} 
 
         const point3& v0() const { return p0; }
         const point3& v1() const { return p1; }
@@ -52,6 +54,7 @@ class triangle
             {
                 r.t = t;
                 r.normal = normal;
+                r.mat = mat;
             }
         }
 

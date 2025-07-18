@@ -82,6 +82,12 @@ class vec3 {
             return *this /= length();
         }
 
+        bool nearZero() const
+        {
+            float s = 0.0000001f;
+            return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+        }
+
         static vec3 up() {return vec3 {0.0, 1.0, 0.0};} 
         static vec3 right() {return vec3 {1.0, 0.0, 0.0};} // Right handed coordinated (+x goes to the right)
         static vec3 forward() {return vec3{0.0, 0.0, -1.0};} // Right handed coordinates (-z goes into screen)

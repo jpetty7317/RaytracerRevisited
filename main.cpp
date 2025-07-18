@@ -8,9 +8,10 @@
 #include "triangle.h"
 #include "aabb.h"
 #include "tlas.h"
+#include "material.h"
 #include <thread>
 
-void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
+void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, shared_ptr<material> mat)
 {
     const aiAABB& bounds = mesh->mAABB;
     vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
@@ -27,7 +28,8 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
         hitMesh->addTriangle(make_shared<triangle>(
             point3(v0.x, v0.y, v0.z),
             point3(v1.x, v1.y, v1.z),
-            point3(v2.x, v2.y, v2.z)
+            point3(v2.x, v2.y, v2.z),
+            mat
         ));
     }
 
@@ -36,17 +38,17 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh)
     modelList.push_back(hitMesh);
 }
 
-void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene)
+void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene, shared_ptr<material> sceneMat)
 {
     for(int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        addFaces(modelList, mesh);
+        addFaces(modelList, mesh, sceneMat);
     }
 
     for(int i = 0; i < node->mNumChildren; i++)
     {
-        buildModelList(modelList, node->mChildren[i], scene);
+        buildModelList(modelList, node->mChildren[i], scene, sceneMat);
     }
 }
 
@@ -70,7 +72,22 @@ int main()
     }
 
     std::vector<shared_ptr<model>> globalModelList;
-    buildModelList(globalModelList, scene->mRootNode, scene);
+    shared_ptr<diffuseLight> lightMat = make_shared<diffuseLight>(color{6,0.2f,0.2f});
+    shared_ptr<lambertian> sceneMat = make_shared<lambertian> (color{0.87f, 0.83f, 0.74f});
+    buildModelList(globalModelList, scene->mRootNode, scene, sceneMat);
+
+    point3 p0 = point3{-800, 0, -100};
+    point3 p1 = point3{-800, 200, 100};
+    point3 p2 = point3{-800, 0, 100};
+    point3 p3 = point3{-800, 200, -100};
+    shared_ptr<model> triLight = make_shared<model>(
+        point3{-801, -1, -101},
+        point3{-799, 201, 101}
+    );
+    triLight->addTriangle(make_shared<triangle>(p0, p1, p2, lightMat));
+    triLight->addTriangle(make_shared<triangle>(p0, p3, p1, lightMat));
+    triLight->mbvh = { &triLight->triangles, (int)triLight->triangles.size() };
+    globalModelList.push_back(triLight);
 
     tlas t {&globalModelList, (int)globalModelList.size()};
 

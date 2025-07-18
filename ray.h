@@ -2,6 +2,7 @@
 #define RAY_H
 
 #include "vec3.h"
+#include "material.h"
 
 class ray
 {
@@ -13,6 +14,7 @@ private:
 public:
     float t = infinity;
     vec3 normal{};
+    shared_ptr<material> mat;
 
     ray (): orig{0,0,0}, dir{0,0,0} {};
     ray (const point3& o, const vec3& d) : orig (o), dir (d), invDir{ 1.0f / d[0], 1.0f / d[1], 1.0f / d[2] } {}

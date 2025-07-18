@@ -77,19 +77,26 @@ public:
     color rayColor(ray& r, int depth, tlas& t) const 
     {
         if(depth <= 0)
-            return vec3{0,0,0};
+            return color{0,0,0};
 
         t.hit(r);
 
-        if(r.t != infinity)
+        if(r.t == infinity)
         {
-            vec3 direction = r.normal + randomVectorOnHemisphere(r.normal);
-            r = ray{r.at(r.t), direction};
-            return 0.5f * rayColor(r, depth - 1, t);
+            float a = r.direction().y() + 1.0f;
+            return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
         }
 
-        float a = r.direction().y() + 1.0f;
-        return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
+        vec3 scattered;
+        color attenuation;
+        color emission = r.mat->emitted(0, 0, vec3::negInf());
+        if(!r.mat->scatter(r.direction(), r.normal, attenuation, scattered))
+            return emission;
+
+        r = ray{r.at(r.t), scattered};
+        color scatter = attenuation * rayColor(r, depth - 1, t);
+        
+        return emission + scatter;
     }
 
 private:
