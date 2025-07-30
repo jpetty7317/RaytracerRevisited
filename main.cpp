@@ -11,7 +11,7 @@
 #include "material.h"
 #include <thread>
 
-void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, shared_ptr<material> mat)
+void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, const shared_ptr<material> mat)
 {
     const aiAABB& bounds = mesh->mAABB;
     vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
@@ -38,28 +38,29 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, sha
     modelList.push_back(hitMesh);
 }
 
-void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene, shared_ptr<material> sceneMat)
+void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene)
 {
     for(int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        addFaces(modelList, mesh, sceneMat);
+        shared_ptr<lambertian> randMat = make_shared<lambertian>(color{randGen(0.0f, 1.0f), randGen(0.0f, 1.0f), randGen(0.0f, 1.0f)});
+        addFaces(modelList, mesh, randMat);
     }
 
     for(int i = 0; i < node->mNumChildren; i++)
     {
-        buildModelList(modelList, node->mChildren[i], scene, sceneMat);
+        buildModelList(modelList, node->mChildren[i], scene);
     }
 }
 
 int main()
 {
     Assimp::Importer importer{};
-    const aiScene* scene = importer.ReadFile("sponza/sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs
-                                                        | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
-
-    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs
+    //const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs
     //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
+
+    const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs
+                                                        | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -72,33 +73,33 @@ int main()
     }
 
     std::vector<shared_ptr<model>> globalModelList;
-    shared_ptr<diffuseLight> lightMat = make_shared<diffuseLight>(color{6,0.2f,0.2f});
-    shared_ptr<lambertian> sceneMat = make_shared<lambertian> (color{0.87f, 0.83f, 0.74f});
-    buildModelList(globalModelList, scene->mRootNode, scene, sceneMat);
+    buildModelList(globalModelList, scene->mRootNode, scene);
 
-    point3 p0 = point3{-800, 0, -100};
-    point3 p1 = point3{-800, 200, 100};
-    point3 p2 = point3{-800, 0, 100};
-    point3 p3 = point3{-800, 200, -100};
+    /*point3 p1 = point3{-600, 1500, 100};
+    point3 p0 = point3{-800, 1500, -100};
+    point3 p2 = point3{-800, 1500, 100};
+    point3 p3 = point3{-600, 1500, -100};
     shared_ptr<model> triLight = make_shared<model>(
-        point3{-801, -1, -101},
-        point3{-799, 201, 101}
+        point3{-801, 1499, -101},
+        point3{-599, 1501, 101}
     );
     triLight->addTriangle(make_shared<triangle>(p0, p1, p2, lightMat));
     triLight->addTriangle(make_shared<triangle>(p0, p3, p1, lightMat));
     triLight->mbvh = { &triLight->triangles, (int)triLight->triangles.size() };
-    globalModelList.push_back(triLight);
+    globalModelList.push_back(triLight);*/
 
     tlas t {&globalModelList, (int)globalModelList.size()};
 
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
     cam.imageWidth = 1280;
-    cam.samplesPerPixel = 1;
+    cam.samplesPerPixel = 2;
     cam.maxBounceDepth = 5;
     cam.vfov = 90;
-    cam.lookFrom = point3{0.0, 530.0, 0.0};
-    cam.lookAt = point3{-3.0, 530.0, 0.0};
+    //cam.lookFrom = point3{0.0, 530.0, 0.0};
+    //cam.lookAt = point3{-3.0, 530.0, 0.0};
+    cam.lookFrom = point3{0.0, 3.0, 3.0};
+    cam.lookAt = point3{0.0, 1.0, 0.0};
     cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();

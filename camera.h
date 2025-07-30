@@ -74,7 +74,9 @@ public:
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    color rayColor(ray& r, int depth, tlas& t) const 
+    vec3 lightDir {-0.6f, -0.7f, 0.1f};
+
+    color rayColor(ray& r, int depth, tlas& t) const
     {
         if(depth <= 0)
             return color{0,0,0};
@@ -83,20 +85,22 @@ public:
 
         if(r.t == infinity)
         {
-            float a = r.direction().y() + 1.0f;
-            return (1.0f - a)*(color{1.0,1.0,1.0}) + a*(color{0.5, 0.7, 1.0});
+            return color {0.5,0.58,0.93};
         }
 
-        vec3 scattered;
-        color attenuation;
-        color emission = r.mat->emitted(0, 0, vec3::negInf());
-        if(!r.mat->scatter(r.direction(), r.normal, attenuation, scattered))
-            return emission;
+        ray shadow {r.at(r.t), -lightDir};
+        t.hit(shadow);
+        color attenuation = color{1,1,1};
+        if (shadow.t != infinity) {
+            attenuation = color{0,0,0};
+        }
 
-        r = ray{r.at(r.t), scattered};
-        color scatter = attenuation * rayColor(r, depth - 1, t);
-        
-        return emission + scatter;
+        color matColor;
+        vec3 scatteredDir;
+        vec3 normal {r.normal};
+        r.mat->scatter(r.direction(), r.normal, matColor, scatteredDir);
+        r = ray{r.at(r.t), scatteredDir};
+        return attenuation * matColor * std::max(0.0f, dot(normal, -lightDir)) + (matColor * rayColor(r, depth - 1, t));
     }
 
 private:

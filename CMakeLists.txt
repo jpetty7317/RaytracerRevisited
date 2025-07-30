@@ -22,3 +22,5 @@ add_executable(RaytracerRevisited
 
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(RaytracerRevisited PRIVATE assimp::assimp)
+
+target_compile_options(RaytracerRevisited PRIVATE -O3)
