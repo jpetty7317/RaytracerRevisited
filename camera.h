@@ -90,7 +90,7 @@ public:
 
         ray shadow {r.at(r.t), -lightDir};
         t.hit(shadow);
-        color attenuation = color{1,1,1};
+        color attenuation = color{4,4,4};
         if (shadow.t != infinity) {
             attenuation = color{0,0,0};
         }
@@ -98,7 +98,7 @@ public:
         color matColor;
         vec3 scatteredDir;
         vec3 normal {r.normal};
-        r.mat->scatter(r.direction(), r.normal, matColor, scatteredDir);
+        r.mat->scatter(r.direction(), r.normal, r.uv, matColor, scatteredDir);
         r = ray{r.at(r.t), scatteredDir};
         return attenuation * matColor * std::max(0.0f, dot(normal, -lightDir)) + (matColor * rayColor(r, depth - 1, t));
     }

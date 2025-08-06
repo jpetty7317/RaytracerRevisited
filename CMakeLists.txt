@@ -18,7 +18,10 @@ add_executable(RaytracerRevisited
         tlas.h
         triangle.h
         utilities.h
-        vec3.h)
+        vec3.h
+        stb_image.h
+        rtw_stb_image.h
+        texture.h)
 
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(RaytracerRevisited PRIVATE assimp::assimp)

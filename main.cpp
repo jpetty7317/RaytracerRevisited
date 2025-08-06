@@ -9,7 +9,9 @@
 #include "aabb.h"
 #include "tlas.h"
 #include "material.h"
+#include "rtw_stb_image.h"
 #include <thread>
+#include <string>
 
 void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, const shared_ptr<material> mat)
 {
@@ -25,10 +27,38 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, con
         aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
         aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
 
+        aiVector3D n0 = mesh->mNormals[face.mIndices[0]];
+        aiVector3D n1 = mesh->mNormals[face.mIndices[1]];
+        aiVector3D n2 = mesh->mNormals[face.mIndices[2]];
+
+        vec3 uv0{};
+        vec3 uv1{};
+        vec3 uv2{};
+        if (mesh->HasTextureCoords(0)) {
+            float x = mesh->mTextureCoords[0][face.mIndices[0]].x;
+            float y = mesh->mTextureCoords[0][face.mIndices[0]].y;
+            uv0 = vec3{x, y, 0.0f};
+
+            x = mesh->mTextureCoords[0][face.mIndices[1]].x;
+            y = mesh->mTextureCoords[0][face.mIndices[1]].y;
+            uv1 = vec3{x, y, 0.0f};
+
+            x = mesh->mTextureCoords[0][face.mIndices[2]].x;
+            y = mesh->mTextureCoords[0][face.mIndices[2]].y;
+            uv2 = vec3{x, y, 0.0f};
+        }
+
+
         hitMesh->addTriangle(make_shared<triangle>(
             point3(v0.x, v0.y, v0.z),
             point3(v1.x, v1.y, v1.z),
             point3(v2.x, v2.y, v2.z),
+            vec3{n0.x, n0.y, n0.z},
+            vec3{n1.x, n1.y, n1.z},
+            vec3{n2.x, n2.y, n2.z},
+            uv0,
+            uv1,
+            uv2,
             mat
         ));
     }
@@ -38,29 +68,41 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, con
     modelList.push_back(hitMesh);
 }
 
-void buildModelList(std::vector<shared_ptr<model>>& modelList, aiNode* node, const aiScene* scene)
+void buildModelList(std::vector<shared_ptr<model>>& modelList, std::vector<shared_ptr<material>>& matList, aiNode* node, const aiScene* scene)
 {
     for(int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        shared_ptr<lambertian> randMat = make_shared<lambertian>(color{randGen(0.0f, 1.0f), randGen(0.0f, 1.0f), randGen(0.0f, 1.0f)});
-        addFaces(modelList, mesh, randMat);
+        shared_ptr<material> mat = matList[mesh->mMaterialIndex];
+        addFaces(modelList, mesh, mat);
     }
 
     for(int i = 0; i < node->mNumChildren; i++)
     {
-        buildModelList(modelList, node->mChildren[i], scene);
+        buildModelList(modelList, matList, node->mChildren[i], scene);
+    }
+}
+
+void buildMaterialList(std::vector<shared_ptr<material>>& materialList, const aiScene* scene, const std::string& folder) {
+    for(int i = 0; i < scene->mNumMaterials; i++) {
+        aiMaterial* material = scene->mMaterials[i];
+        aiString texturePath;
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
+        std::string texName {texturePath.data};
+        shared_ptr<texture> matTex = make_shared<texture>((folder + texName).c_str());
+        shared_ptr<lambertian> newMat =make_shared<lambertian>(color{1,1,1}, matTex);
+        materialList.push_back(newMat);
     }
 }
 
 int main()
 {
     Assimp::Importer importer{};
-    //const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_FlipUVs
-    //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
-
-    const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs
+    const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
+
+    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals
+    //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -73,7 +115,9 @@ int main()
     }
 
     std::vector<shared_ptr<model>> globalModelList;
-    buildModelList(globalModelList, scene->mRootNode, scene);
+    std::vector<shared_ptr<material>> globalMaterialList;
+    buildMaterialList(globalMaterialList, scene, "sponza\\");
+    buildModelList(globalModelList, globalMaterialList, scene->mRootNode, scene);
 
     /*point3 p1 = point3{-600, 1500, 100};
     point3 p0 = point3{-800, 1500, -100};
@@ -93,13 +137,13 @@ int main()
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
     cam.imageWidth = 1280;
-    cam.samplesPerPixel = 2;
+    cam.samplesPerPixel = 1;
     cam.maxBounceDepth = 5;
     cam.vfov = 90;
-    //cam.lookFrom = point3{0.0, 530.0, 0.0};
-    //cam.lookAt = point3{-3.0, 530.0, 0.0};
-    cam.lookFrom = point3{0.0, 3.0, 3.0};
-    cam.lookAt = point3{0.0, 1.0, 0.0};
+    cam.lookFrom = point3{0.0, 530.0, 0.0};
+    cam.lookAt = point3{-3.0, 530.0, 0.0};
+    //cam.lookFrom = point3{0.0, 3.0, 3.0};
+    //cam.lookAt = point3{0.0, 1.0, 0.0};
     cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();

@@ -17,9 +17,17 @@ inline T linearToGamma(const T linear)
 
 void writeColor (std::ofstream& out, const color& c)
 {
-    auto cr = linearToGamma(c.r());
-    auto cg = linearToGamma(c.g());
-    auto cb = linearToGamma(c.b());
+    auto cr = c.r();
+    auto cg = c.g();
+    auto cb = c.b();
+
+    if (cr != cr) cr = 0.0f;
+    if (cg != cg) cg = 0.0f;
+    if (cb != cb) cb = 0.0f;
+
+    cr = linearToGamma(c.r());
+    cg = linearToGamma(c.g());
+    cb = linearToGamma(c.b());
 
     static const interval intensity {0.000, 0.999};
     int r = int(256 * intensity.clamp(cr));

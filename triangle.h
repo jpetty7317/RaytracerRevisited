@@ -13,11 +13,23 @@ class triangle
         vec3 p0 {};
         vec3 p1 {};
         vec3 p2 {};
+        vec3 n0 {};
+        vec3 n1 {};
+        vec3 n2 {};
+        vec3 uv0 {};
+        vec3 uv1 {};
+        vec3 uv2 {};
         vec3 cent {};
         shared_ptr<material> mat;
 
     public:
-        triangle(const vec3& a, const vec3& b, const vec3& c, shared_ptr<material> m): p0{a}, p1{b}, p2{c}, cent{(a + b + c) * 0.33333f}, mat{m}{} 
+        triangle(const vec3& a, const vec3& b, const vec3& c,
+                    const vec3& x, const vec3& y, const vec3& z,
+                    const vec3& u0, const vec3& u1, const vec3& u2,
+                    shared_ptr<material> m):
+                        p0{a}, p1{b}, p2{c}, cent{(a + b + c) * 0.33333f},
+                        n0{x}, n1{y}, n2{z}, mat{m},
+                        uv0{u0}, uv1{u1}, uv2{u2}{}
 
         const point3& v0() const { return p0; }
         const point3& v1() const { return p1; }
@@ -29,7 +41,7 @@ class triangle
             const vec3 e1 = p1 - p0;
             const vec3 e2 = p2 - p0;
 
-            const vec3 normal = cross(e1, e2).normalize();
+            const vec3 normal = (n0 + n1 + n2) / 3.0f;
             if(dot(r.direction(), normal) > 0.0)
                 return;
 
@@ -53,7 +65,12 @@ class triangle
             if(t > 0.00001f && t < r.t)
             {
                 r.t = t;
-                r.normal = normal;
+                float w = 1.0f - u - v;
+                r.normal = u * n1 + v * n2 + w * n0;
+                r.uv = u * uv1 + v * uv2 + w * uv0;
+                float x = r.uv.x() - std::floor(r.uv.x());
+                float y = r.uv.y() - std::floor(r.uv.y());
+                r.uv = vec3{x, y, 0.0f};
                 r.mat = mat;
             }
         }

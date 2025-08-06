@@ -14,6 +14,7 @@ private:
 public:
     float t = infinity;
     vec3 normal{};
+    vec3 uv{};
     shared_ptr<material> mat;
 
     ray (): orig{0,0,0}, dir{0,0,0} {};
