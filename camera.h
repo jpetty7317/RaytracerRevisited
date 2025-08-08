@@ -65,9 +65,9 @@ public:
         ppm.close();
     }
 
-    ray getRay(int i, int j) const
+    ray getRay(int i, int j, uint32_t& seed) const
     {
-        vec3 offset = sampleSquare();
+        vec3 offset = sampleSquare(seed);
         vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
         //vec3 pixelSample = pixel00Pos + (i * pixelDeltaU) + (j * pixelDeltaV);
 
@@ -76,7 +76,7 @@ public:
 
     vec3 lightDir {-0.6f, -0.7f, 0.1f};
 
-    color rayColor(ray& r, int depth, tlas& t) const
+    color rayColor(ray& r, int depth, tlas& t, uint32_t& seed) const
     {
         if(depth <= 0)
             return color{0,0,0};
@@ -98,9 +98,9 @@ public:
         color matColor;
         vec3 scatteredDir;
         vec3 normal {r.normal};
-        r.mat->scatter(r.direction(), r.normal, r.uv, matColor, scatteredDir);
+        r.mat->scatter(r.direction(), r.normal, r.uv, matColor, scatteredDir, seed);
         r = ray{r.at(r.t), scatteredDir};
-        return attenuation * matColor * std::max(0.0f, dot(normal, -lightDir)) + (matColor * rayColor(r, depth - 1, t));
+        return attenuation * matColor * std::max(0.0f, dot(normal, -lightDir)) + (matColor * rayColor(r, depth - 1, t, seed));
     }
 
 private:
@@ -147,9 +147,9 @@ private:
         pixel00Pos = viewportUpperLeft + ((pixelDeltaU + pixelDeltaV) * 0.5);
     }
 
-    vec3 sampleSquare() const
+    vec3 sampleSquare(uint32_t& seed) const
     {
-        return vec3{ randGen<float>() - 0.5f, randGen<float>() - 0.5f, 0.0f };
+        return vec3{ randGen<float>(seed) - 0.5f, randGen<float>(seed) - 0.5f, 0.0f };
     }
 };
 
@@ -165,11 +165,13 @@ void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas&
             if(x >= nx || y >= ny)
                 continue;
 
+            uint32_t seed = x + y * nx;
             vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
-                ray r = cam.getRay(x, y);
-                col += cam.rayColor(r, maxBounceDepth, t);
+                seed += s;
+                ray r = cam.getRay(x, y, seed);
+                col += cam.rayColor(r, maxBounceDepth, t, seed);
             }
 
             col *= cam.getInvPixelSamples();

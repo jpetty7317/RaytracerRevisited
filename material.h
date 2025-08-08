@@ -14,7 +14,7 @@ class material
             return color(0,0,0);
         }
 
-        virtual bool scatter(const vec3& dirIn, const vec3& normal, const vec3& uv, color& attenuation, vec3& scattered) const
+        virtual bool scatter(const vec3& dirIn, const vec3& normal, const vec3& uv, color& attenuation, vec3& scattered, uint32_t& seed) const
         {
             return false;
         }
@@ -25,9 +25,9 @@ class lambertian : public material
     public:
         lambertian(const color& a, shared_ptr<texture> t) : albedo(a), diffuse(t){}
 
-        bool scatter(const vec3& dirIn, const vec3& normal, const vec3& uv, color& attenuation, vec3& scattered) const override
+        bool scatter(const vec3& dirIn, const vec3& normal, const vec3& uv, color& attenuation, vec3& scattered, uint32_t& seed) const override
         {
-            vec3 scatteredDir = normal + randomUnitVector();
+            vec3 scatteredDir = normal + randomUnitVector(seed);
 
             if(scatteredDir.nearZero())
                 scatteredDir = normal;

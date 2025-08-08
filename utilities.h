@@ -28,18 +28,23 @@ inline T degreesToRadians(T degrees)
     return degrees * pi180;
 }
 
-template <typename T>
-inline T randGen()
+inline uint32_t randFast(uint32_t& seed)
 {
-    static thread_local std::uniform_real_distribution<T> distribution(0.0, 1.0);
-    static thread_local std::mt19937_64 generator;
-    return distribution(generator);
+    seed = seed * 747796485u + 2981336453u;
+    uint32_t word = ((seed >> ((seed >> 28u) + 4u)) ^ seed) + 277803737;
+    return (word >> 22u) ^ word;
+}
+
+template <typename T>
+inline T randGen(uint32_t& seed)
+{
+    return (T)randFast(seed) / (T)std::numeric_limits<uint32_t>::max();
 }
 
 template <typename T, typename U>
-inline T randGen(T min, U max)
+inline T randGen(T min, U max, uint32_t& seed)
 {
-    return min + (max - min) * randGen<T>();
+    return min + (max - min) * randGen<T>(seed);
 }
 
 // Common headers

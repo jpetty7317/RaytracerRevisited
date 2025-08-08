@@ -153,25 +153,25 @@ inline vec3 cross(const vec3& v1, const vec3& v2)
                     v1[0] * v2[1] - v1[1] * v2[0]   };
 }
 
-inline vec3 randomInUnitSphere()
+inline float randomValueNormalDistribution(uint32_t& seed)
 {
-    vec3 v {};
-    do
-    {
-        v = 2.0f * vec3(randGen<float>(), randGen<float>(), randGen<float>()) - vec3{1,1,1};
-    } while (v.squaredLength() >= 1.0);
-
-    return v;
+    float theta = 2.0f * pi * randGen<float>(seed);
+    float rho = std::sqrt(-2.0f * std::log(randGen<float>(seed)));
+    return rho * std::cos(theta);
 }
 
-inline vec3 randomUnitVector()
+inline vec3 randomUnitVector(uint32_t& seed)
 {
-    return randomInUnitSphere().normalize();
+    return vec3{
+        randomValueNormalDistribution(seed),
+        randomValueNormalDistribution(seed),
+        randomValueNormalDistribution(seed),
+    }.normalize();
 }
 
-inline vec3 randomVectorOnHemisphere(const vec3& normal)
+inline vec3 randomVectorOnHemisphere(const vec3& normal, uint32_t& seed)
 {
-    vec3 onUnitSphere = randomUnitVector();
+    vec3 onUnitSphere = randomUnitVector(seed);
 
     return dot(onUnitSphere, normal) > 0.0 ? onUnitSphere : -onUnitSphere;
 }
