@@ -35,10 +35,10 @@ private:
                 tlasNode& nodeA = tlasNodes[nodeIdx[A]];
                 tlasNode& nodeB = tlasNodes[nodeIdx[B]];
 
-                vec3 bmax { vmax(nodeA.bounds.max(), nodeB.bounds.max()) };
-                vec3 bmin { vmin(nodeA.bounds.min(), nodeB.bounds.min()) };
-                vec3 e = bmax - bmin;
-                float surfaceArea = e.x() * e.y() + e.y() * e.z() + e.z() * e.x();
+                glm::vec3 bmax { glm::max(nodeA.bounds.max(), nodeB.bounds.max()) };
+                glm::vec3 bmin { glm::min(nodeA.bounds.min(), nodeB.bounds.min()) };
+                glm::vec3 e = bmax - bmin;
+                float surfaceArea = e.x * e.y + e.y * e.z + e.z * e.x;
                 if(surfaceArea < smallest)
                 {
                     smallest = surfaceArea;
@@ -78,8 +78,8 @@ private:
                 tlasNode& nodeA = tlasNodes[nodeIdxA];
                 tlasNode& nodeB = tlasNodes[nodeIdxB];
                 tlasNodes[nodesUsed].leftRight = nodeIdxA + (nodeIdxB << 16);
-                tlasNodes[nodesUsed].bounds.min() = vmin(nodeA.bounds.min(), nodeB.bounds.min());
-                tlasNodes[nodesUsed].bounds.max() = vmax(nodeA.bounds.max(), nodeB.bounds.max());
+                tlasNodes[nodesUsed].bounds.min() = glm::min(nodeA.bounds.min(), nodeB.bounds.min());
+                tlasNodes[nodesUsed].bounds.max() = glm::max(nodeA.bounds.max(), nodeB.bounds.max());
                 nodeIdx[A] = nodesUsed++;
                 nodeIdx[B] = nodeIdx[nodeIndices - 1];
                 B = findBestMatch(nodeIdx, --nodeIndices, A);

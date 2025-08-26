@@ -100,8 +100,8 @@ private:
 
     float calculateNodeCost(bvhNode& node)
     {
-        vec3 e {node.bounds.max() - node.bounds.min()};
-        float parentArea = e.x() * e.y() + e.y() * e.z() + e.z() * e.x();
+        glm::vec3 e {node.bounds.max() - node.bounds.min()};
+        float parentArea = e.x * e.y + e.y * e.z + e.z * e.x;
         return node.triCount * parentArea;
     }
 
@@ -115,12 +115,12 @@ private:
         {
             int modIndex = triIndices[first + i];
             shared_ptr<triangle> t = (*triangles)[modIndex];
-            node.bounds.min() = vmin(node.bounds.min(), t->v0());
-            node.bounds.min() = vmin(node.bounds.min(), t->v1());
-            node.bounds.min() = vmin(node.bounds.min(), t->v2());
-            node.bounds.max() = vmax(node.bounds.max(), t->v0());
-            node.bounds.max() = vmax(node.bounds.max(), t->v1());
-            node.bounds.max() = vmax(node.bounds.max(), t->v2());
+            node.bounds.min() = glm::min(node.bounds.min(), t->v0());
+            node.bounds.min() = glm::min(node.bounds.min(), t->v1());
+            node.bounds.min() = glm::min(node.bounds.min(), t->v2());
+            node.bounds.max() = glm::max(node.bounds.max(), t->v0());
+            node.bounds.max() = glm::max(node.bounds.max(), t->v1());
+            node.bounds.max() = glm::max(node.bounds.max(), t->v2());
         }
     }
 

@@ -9,7 +9,7 @@
 
 class camera;
 
-void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& tlas, const camera& cam, std::vector<color>* output);
+void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& tlas, const camera& cam, std::vector<glm::vec3>* output);
 
 class camera
 {
@@ -19,9 +19,8 @@ public:
     int samplesPerPixel = 10;    // Count of random samples for each pixel
     int maxBounceDepth = 10;     // Maximum number of bounces per ray
     double vfov = 90;            // Vertical view angle (field of view)
-    point3 lookFrom = point3{0,0,0};
-    point3 lookAt = point3{0,0,-1};
-    vec3 vUp = vec3{0,1,0};
+    glm::vec3 lookFrom = glm::vec3{0,0,0};
+    glm::vec3 lookAt = glm::vec3{0,0,-1};
 
     double getInvPixelSamples() const { return pixelSamplesInv; }
 
@@ -30,7 +29,7 @@ public:
         initialize();
 
         std::vector<std::thread> threadPool;
-        std::vector<color> output(imageWidth * imageHeight);
+        std::vector<glm::vec3> output(imageWidth * imageHeight);
 
         int tX = (int)std::ceil((float)imageWidth / 16.0f);
         int tY = (int)std::ceil((float)imageHeight / 16.0f);
@@ -67,37 +66,37 @@ public:
 
     ray getRay(int i, int j, uint32_t& seed) const
     {
-        vec3 offset = sampleSquare(seed);
-        vec3 pixelSample = pixel00Pos + ((i + offset.x()) * pixelDeltaU) + ((j + offset.y()) * pixelDeltaV);
+        glm::vec3 offset = sampleSquare(seed);
+        glm::vec3 pixelSample = pixel00Pos + ((i + offset.x) * pixelDeltaU) + ((j + offset.y) * pixelDeltaV);
         //vec3 pixelSample = pixel00Pos + (i * pixelDeltaU) + (j * pixelDeltaV);
 
         return ray{cameraPos, pixelSample - cameraPos};
     }
 
-    vec3 lightDir {-0.6f, -0.7f, 0.1f};
+    glm::vec3 lightDir {-0.6f, -0.7f, 0.1f};
 
-    color rayColor(ray& r, int depth, tlas& t, uint32_t& seed) const
+    glm::vec3 rayColor(ray& r, int depth, tlas& t, uint32_t& seed) const
     {
         if(depth <= 0)
-            return color{0,0,0};
+            return glm::vec3{0,0,0};
 
         t.hit(r);
 
         if(r.t == infinity)
         {
-            return color {0.5,0.58,0.93};
+            return glm::vec3 {0.5,0.58,0.93};
         }
 
         ray shadow {r.at(r.t), -lightDir};
         t.hit(shadow);
-        color attenuation = color{4,4,4};
+        glm::vec3 attenuation = glm::vec3{4,4,4};
         if (shadow.t != infinity) {
-            attenuation = color{0,0,0};
+            attenuation = glm::vec3{0,0,0};
         }
 
-        color matColor;
-        vec3 scatteredDir;
-        vec3 normal {r.normal};
+        glm::vec3 matColor;
+        glm::vec3 scatteredDir;
+        glm::vec3 normal {r.normal};
         r.mat->scatter(r.direction(), r.normal, r.uv, matColor, scatteredDir, seed);
         r = ray{r.at(r.t), scatteredDir};
         return attenuation * matColor * std::max(0.0f, dot(normal, -lightDir)) + (matColor * rayColor(r, depth - 1, t, seed));
@@ -106,15 +105,15 @@ public:
 private:
     int imageHeight;    // Rendered image height
     double pixelSamplesInv; // Inverse of pixel samples to scale result
-    point3 cameraPos;   // Camera position
-    point3 pixel00Pos;  // World pos of pixel 0,0
-    vec3 pixelDeltaU;   // Offset to center of pixel to the right
-    vec3 pixelDeltaV;   // Offset to center of pixel below
+    glm::vec3 cameraPos;   // Camera position
+    glm::vec3 pixel00Pos;  // World pos of pixel 0,0
+    glm::vec3 pixelDeltaU;   // Offset to center of pixel to the right
+    glm::vec3 pixelDeltaV;   // Offset to center of pixel below
     
     // Orthonormal basis vectors for orienting the camera arbitrarily
-    vec3 u;
-    vec3 v;
-    vec3 w;
+    glm::vec3 u;
+    glm::vec3 v;
+    glm::vec3 w;
 
     void initialize()
     {
@@ -133,27 +132,27 @@ private:
         const double viewportWidth = viewportHeight * (double(imageWidth) / imageHeight);
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame
-        w = (lookFrom - lookAt).normalize();
-        u = cross(vUp, w).normalize();
-        v = cross(w, u);
+        w = glm::normalize(lookFrom - lookAt);
+        u = glm::normalize(glm::cross(vec3::up(), w));
+        v = glm::cross(w, u);
 
-        vec3 viewPortU {float(viewportWidth) * u};
-        vec3 viewPortV {float(viewportHeight) * -v};
+        glm::vec3 viewPortU {float(viewportWidth) * u};
+        glm::vec3 viewPortV {float(viewportHeight) * -v};
 
         pixelDeltaU = viewPortU / imageWidth;
         pixelDeltaV = viewPortV / imageHeight;
 
-        point3 viewportUpperLeft = cameraPos - (focalLength * w) - (viewPortU / 2.0) - (viewPortV / 2.0);
+        glm::vec3 viewportUpperLeft = cameraPos - (focalLength * w) - (viewPortU / 2.0) - (viewPortV / 2.0);
         pixel00Pos = viewportUpperLeft + ((pixelDeltaU + pixelDeltaV) * 0.5);
     }
 
-    vec3 sampleSquare(uint32_t& seed) const
+    glm::vec3 sampleSquare(uint32_t& seed) const
     {
-        return vec3{ randGen<float>(seed) - 0.5f, randGen<float>(seed) - 0.5f, 0.0f };
+        return glm::vec3{ randGen<float>(seed) - 0.5f, randGen<float>(seed) - 0.5f, 0.0f };
     }
 };
 
-void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& t, const camera& cam, std::vector<color>* output)
+void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas& t, const camera& cam, std::vector<glm::vec3>* output)
 {
     for(int v = 0; v < 16; v++)
     {
@@ -166,7 +165,7 @@ void renderRow(int tx, int ty, int nx, int ny, int ns, int maxBounceDepth, tlas&
                 continue;
 
             uint32_t seed = x + y * nx;
-            vec3 col {0,0,0};
+            glm::vec3 col {0,0,0};
             for(int s = 0; s < ns; s++)
             {
                 seed += s;

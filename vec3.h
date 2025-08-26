@@ -88,15 +88,15 @@ class vec3 {
             return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
         }
 
-        static vec3 up() {return vec3 {0.0, 1.0, 0.0};} 
-        static vec3 right() {return vec3 {1.0, 0.0, 0.0};} // Right handed coordinated (+x goes to the right)
-        static vec3 forward() {return vec3{0.0, 0.0, -1.0};} // Right handed coordinates (-z goes into screen)
-        static vec3 posInf() {return vec3{infinity, infinity, infinity};}
-        static vec3 negInf() {return vec3{-infinity, -infinity, -infinity};}
+        static glm::vec3 up() {return glm::vec3 {0.0, 1.0, 0.0};}
+        static glm::vec3 right() {return glm::vec3 {1.0, 0.0, 0.0};} // Right handed coordinated (+x goes to the right)
+        static glm::vec3 forward() {return glm::vec3{0.0, 0.0, -1.0};} // Right handed coordinates (-z goes into screen)
+        static glm::vec3 posInf() {return glm::vec3{infinity, infinity, infinity};}
+        static glm::vec3 negInf() {return glm::vec3{-infinity, -infinity, -infinity};}
 };
 
 // point alias for semantics
-using point3 = vec3;
+//using point3 = vec3;
 
 // utility functions
 inline std::ostream& operator<<(std::ostream& out, const vec3& v)
@@ -124,14 +124,14 @@ inline vec3 operator*(const float v, const vec3& v1)
     return vec3 {v1[0] * v, v1[1] * v, v1[2] * v};
 }
 
-inline vec3 operator*(const vec3& v1, const float v)
+inline glm::vec3 operator*(const glm::vec3& v1, const float v)
 {
-    return vec3 {v1[0] * v, v1[1] * v, v1[2] * v};
+    return glm::vec3 {v1[0] * v, v1[1] * v, v1[2] * v};
 }
 
-inline vec3 operator/(const vec3& v1, const float v)
+inline glm::vec3 operator/(const glm::vec3& v1, const float v)
 {
-    return vec3 {v1[0] / v, v1[1] / v, v1[2] / v};
+    return glm::vec3 {v1[0] / v, v1[1] / v, v1[2] / v};
 }
 
 inline bool operator==(const vec3& v1, const vec3& v2)
@@ -160,21 +160,21 @@ inline float randomValueNormalDistribution(uint32_t& seed)
     return rho * std::cos(theta);
 }
 
-inline vec3 randomUnitVector(uint32_t& seed)
+inline glm::vec3 randomUnitVector(uint32_t& seed)
 {
-    return vec3{
+    return glm::normalize(glm::vec3{
         randomValueNormalDistribution(seed),
         randomValueNormalDistribution(seed),
         randomValueNormalDistribution(seed),
-    }.normalize();
+    });
 }
 
-inline vec3 randomVectorOnHemisphere(const vec3& normal, uint32_t& seed)
+/*inline vec3 randomVectorOnHemisphere(const vec3& normal, uint32_t& seed)
 {
     vec3 onUnitSphere = randomUnitVector(seed);
 
     return dot(onUnitSphere, normal) > 0.0 ? onUnitSphere : -onUnitSphere;
-}
+}*/
 
 inline vec3 vmin(const vec3& a, const vec3& b)
 {

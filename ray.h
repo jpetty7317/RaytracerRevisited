@@ -1,30 +1,30 @@
 #ifndef RAY_H
 #define RAY_H
 
-#include "vec3.h"
+#include "utilities.h"
 #include "material.h"
 
 class ray
 {
 private:
-    point3 orig {};
-    vec3 dir {};
-    vec3 invDir {};
+    glm::vec3 orig {};
+    glm::vec3 dir {};
+    glm::vec3 invDir {};
 
 public:
     float t = infinity;
-    vec3 normal{};
-    vec3 uv{};
+    glm::vec3 normal{};
+    glm::vec3 uv{};
     shared_ptr<material> mat;
 
     ray (): orig{0,0,0}, dir{0,0,0} {};
-    ray (const point3& o, const vec3& d) : orig (o), dir (d), invDir{ 1.0f / d[0], 1.0f / d[1], 1.0f / d[2] } {}
+    ray (const glm::vec3& o, const glm::vec3& d) : orig (o), dir (d), invDir{ 1.0f / d[0], 1.0f / d[1], 1.0f / d[2] } {}
     
-    const point3& origin() const { return orig; }
-    const vec3& direction() const { return dir; }
-    const vec3& invDirection() const { return invDir; }
+    const glm::vec3& origin() const { return orig; }
+    const glm::vec3& direction() const { return dir; }
+    const glm::vec3& invDirection() const { return invDir; }
 
-    point3 at(float t) const
+    glm::vec3 at(float t) const
     {
         return orig + t * dir;
     }

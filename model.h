@@ -18,7 +18,7 @@ class model// : public hittable
 
         model(){}
 
-        model(const point3& min, const point3& max) : bounds{min, max} {}
+        model(const glm::vec3& min, const glm::vec3& max) : bounds{min, max} {}
 
         void clear() { triangles.clear(); }
 

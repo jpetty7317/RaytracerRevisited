@@ -16,8 +16,8 @@
 void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, const shared_ptr<material> mat)
 {
     const aiAABB& bounds = mesh->mAABB;
-    vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
-    vec3 max {bounds.mMax.x, bounds.mMax.y, bounds.mMax.z};
+    glm::vec3 min {bounds.mMin.x, bounds.mMin.y, bounds.mMin.z};
+    glm::vec3 max {bounds.mMax.x, bounds.mMax.y, bounds.mMax.z};
 
     shared_ptr<model> hitMesh = make_shared<model>(min, max);
     for(int i = 0; i < mesh->mNumFaces; i++)
@@ -31,31 +31,31 @@ void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, con
         aiVector3D n1 = mesh->mNormals[face.mIndices[1]];
         aiVector3D n2 = mesh->mNormals[face.mIndices[2]];
 
-        vec3 uv0{};
-        vec3 uv1{};
-        vec3 uv2{};
+        glm::vec3 uv0{};
+        glm::vec3 uv1{};
+        glm::vec3 uv2{};
         if (mesh->HasTextureCoords(0)) {
             float x = mesh->mTextureCoords[0][face.mIndices[0]].x;
             float y = mesh->mTextureCoords[0][face.mIndices[0]].y;
-            uv0 = vec3{x, y, 0.0f};
+            uv0 = glm::vec3{x, y, 0.0f};
 
             x = mesh->mTextureCoords[0][face.mIndices[1]].x;
             y = mesh->mTextureCoords[0][face.mIndices[1]].y;
-            uv1 = vec3{x, y, 0.0f};
+            uv1 = glm::vec3{x, y, 0.0f};
 
             x = mesh->mTextureCoords[0][face.mIndices[2]].x;
             y = mesh->mTextureCoords[0][face.mIndices[2]].y;
-            uv2 = vec3{x, y, 0.0f};
+            uv2 = glm::vec3{x, y, 0.0f};
         }
 
 
         hitMesh->addTriangle(make_shared<triangle>(
-            point3(v0.x, v0.y, v0.z),
-            point3(v1.x, v1.y, v1.z),
-            point3(v2.x, v2.y, v2.z),
-            vec3{n0.x, n0.y, n0.z},
-            vec3{n1.x, n1.y, n1.z},
-            vec3{n2.x, n2.y, n2.z},
+            glm::vec3(v0.x, v0.y, v0.z),
+            glm::vec3(v1.x, v1.y, v1.z),
+            glm::vec3(v2.x, v2.y, v2.z),
+            glm::vec3{n0.x, n0.y, n0.z},
+            glm::vec3{n1.x, n1.y, n1.z},
+            glm::vec3{n2.x, n2.y, n2.z},
             uv0,
             uv1,
             uv2,
@@ -90,7 +90,7 @@ void buildMaterialList(std::vector<shared_ptr<material>>& materialList, const ai
         material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
         std::string texName {texturePath.data};
         shared_ptr<texture> matTex = make_shared<texture>((folder + texName).c_str());
-        shared_ptr<lambertian> newMat =make_shared<lambertian>(color{1,1,1}, matTex);
+        shared_ptr<lambertian> newMat =make_shared<lambertian>(glm::vec3{1,1,1}, matTex);
         materialList.push_back(newMat);
     }
 }
@@ -137,14 +137,13 @@ int main()
     camera cam;
     cam.aspectRatio = 16.0 / 9.0;
     cam.imageWidth = 1280;
-    cam.samplesPerPixel = 1;
-    cam.maxBounceDepth = 5;
+    cam.samplesPerPixel = 5;
+    cam.maxBounceDepth = 3;
     cam.vfov = 90;
-    cam.lookFrom = point3{0.0, 530.0, 0.0};
-    cam.lookAt = point3{-3.0, 530.0, 0.0};
+    cam.lookFrom = glm::vec3{0.0, 530.0, 0.0};
+    cam.lookAt = glm::vec3{-3.0, 530.0, 0.0};
     //cam.lookFrom = point3{0.0, 3.0, 3.0};
     //cam.lookAt = point3{0.0, 1.0, 0.0};
-    cam.vUp = vec3{0,1,0};
 
     unsigned int n = std::thread::hardware_concurrency();
     std::cout << n << " concurrent threads are supported.\n";

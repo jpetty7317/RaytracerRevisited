@@ -6,6 +6,7 @@
 #include <fstream>
 #include <limits>
 #include <memory>
+#include <glm/glm.hpp>
 #include <random>
 
 // C++ std usings
@@ -47,8 +48,13 @@ inline T randGen(T min, U max, uint32_t& seed)
     return min + (max - min) * randGen<T>(seed);
 }
 
-// Common headers
+inline bool nearZero(glm::vec3& v)
+{
+    float s = 0.0000001f;
+    return (std::fabs(v[0]) < s) && (std::fabs(v[1]) < s) && (std::fabs(v[2]) < s);
+}
 
+// Common headers
 #include "color.h"
 #include "interval.h"
 #include "ray.h"
