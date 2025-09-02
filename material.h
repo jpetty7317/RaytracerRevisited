@@ -1,9 +1,8 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "utilities.h"
 #include "texture.h"
-#include "vec3.h"
+#include "vec3utils.h"
 
 class material
 {
@@ -34,7 +33,7 @@ class lambertian : public material
                 scatteredDir = normal;
 
             scattered = scatteredDir;
-            attenuation = albedo * diffuse->value(uv.x, uv.y, vec3::up());
+            attenuation = albedo * diffuse->value(uv.x, uv.y, VEC3_UP);
             return true;
         }
 

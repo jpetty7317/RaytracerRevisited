@@ -18,7 +18,7 @@ add_executable(RaytracerRevisited
         tlas.h
         triangle.h
         utilities.h
-        vec3.h
+        vec3utils.h
         stb_image.h
         rtw_stb_image.h
         texture.h)

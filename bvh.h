@@ -108,8 +108,8 @@ private:
     void updateNodeBounds(int nodeIdx)
     {
         bvhNode& node = bvhNodes[nodeIdx];
-        node.bounds.min() = vec3::posInf();
-        node.bounds.max() = vec3::negInf();
+        node.bounds.min() = VEC3_POSINF;
+        node.bounds.max() = VEC3_NEGINF;
         int first = node.leftFirst;
         for(int i = 0; i < node.triCount; i++)
         {

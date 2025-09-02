@@ -133,7 +133,7 @@ private:
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame
         w = glm::normalize(lookFrom - lookAt);
-        u = glm::normalize(glm::cross(vec3::up(), w));
+        u = glm::normalize(glm::cross(VEC3_UP, w));
         v = glm::cross(w, u);
 
         glm::vec3 viewPortU {float(viewportWidth) * u};

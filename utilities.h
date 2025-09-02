@@ -21,6 +21,12 @@ constexpr float infinity = 1e30;
 constexpr float pi = 3.1415926535897932385f;
 constexpr float pi180 = pi / 180.0f;
 
+constexpr glm::vec3 VEC3_UP  {0.0, 1.0, 0.0};
+constexpr glm::vec3 VEC3_RIGHT {1.0, 0.0, 0.0}; // Right handed coordinated (+x goes to the right)
+constexpr glm::vec3 VEC3_FORWARD {0.0, 0.0, -1.0}; // Right handed coordinates (-z goes into screen)
+constexpr glm::vec3 VEC3_POSINF {infinity, infinity, infinity};
+constexpr glm::vec3 VEC3_NEGINF {-infinity, -infinity, -infinity};
+
 // Utility functions
 
 template <typename T>
@@ -58,6 +64,6 @@ inline bool nearZero(glm::vec3& v)
 #include "color.h"
 #include "interval.h"
 #include "ray.h"
-#include "vec3.h"
+#include "vec3utils.h"
 
 #endif

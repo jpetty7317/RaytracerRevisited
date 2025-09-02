@@ -54,7 +54,7 @@ public:
 
     void grow(aabb& b)
     {
-        if(b.min() == vec3::posInf())
+        if(b.min() == VEC3_POSINF)
             return;
 
         grow(b.min());
