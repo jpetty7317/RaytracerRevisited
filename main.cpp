@@ -13,6 +13,14 @@
 #include <thread>
 #include <string>
 
+#ifdef _WIN32
+const std::string sponzaPath = "sponza\\";
+#elif __APPLE__
+const std::string sponzaPath = "sponza/";
+#endif
+const std::string sponzaOBJ = "sponza.obj";
+const std::string teapotOBJ = "teapot.obj";
+
 void addFaces(std::vector<shared_ptr<model>>& modelList, const aiMesh* mesh, const shared_ptr<material> mat)
 {
     const aiAABB& bounds = mesh->mAABB;
@@ -98,10 +106,10 @@ void buildMaterialList(std::vector<shared_ptr<material>>& materialList, const ai
 int main()
 {
     Assimp::Importer importer{};
-    const aiScene* scene = importer.ReadFile("sponza\\sponza.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals
+    const aiScene* scene = importer.ReadFile(sponzaPath + sponzaOBJ, aiProcess_Triangulate | aiProcess_GenSmoothNormals
                                                         | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
-    //const aiScene* scene = importer.ReadFile("teapot.obj", aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals
+    //const aiScene* scene = importer.ReadFile(teapotOBJ, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals
     //                                                    | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -116,7 +124,7 @@ int main()
 
     std::vector<shared_ptr<model>> globalModelList;
     std::vector<shared_ptr<material>> globalMaterialList;
-    buildMaterialList(globalMaterialList, scene, "sponza\\");
+    buildMaterialList(globalMaterialList, scene, sponzaPath);
     buildModelList(globalModelList, globalMaterialList, scene->mRootNode, scene);
 
     /*point3 p1 = point3{-600, 1500, 100};
@@ -142,8 +150,8 @@ int main()
     cam.vfov = 90;
     cam.lookFrom = glm::vec3{0.0, 530.0, 0.0};
     cam.lookAt = glm::vec3{-3.0, 530.0, 0.0};
-    //cam.lookFrom = point3{0.0, 3.0, 3.0};
-    //cam.lookAt = point3{0.0, 1.0, 0.0};
+    //cam.lookFrom = glm::vec3{0.0, 3.0, 3.0};
+    //cam.lookAt = glm::vec3{0.0, 1.0, 0.0};
 
     unsigned int n = std::thread::hardware_concurrency();
     std::cout << n << " concurrent threads are supported.\n";

@@ -23,10 +23,10 @@ add_executable(RaytracerRevisited
         rtw_stb_image.h
         texture.h)
 
-find_package(assimp CONFIG REQUIRED)
+find_package(assimp REQUIRED)
 target_link_libraries(RaytracerRevisited PRIVATE assimp::assimp)
 
-find_package(glm CONFIG REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(RaytracerRevisited PRIVATE glm::glm)
 
 target_compile_options(RaytracerRevisited PRIVATE -O3)
